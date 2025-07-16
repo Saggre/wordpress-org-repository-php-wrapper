@@ -1,0 +1,20 @@
+# Composer
+/vendor/
+auth.json
+
+# IDE
+.idea
+
+# PHPUnit / Tests
+phpunit.xml
+.phpunit*
+/tests/config/*.conf
+*.conf
+
+# Logs
+/logs/
+
+# Docs
+/.phpdoc/
+phpdoc.xml
+/gen/
