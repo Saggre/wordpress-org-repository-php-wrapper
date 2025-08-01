@@ -38,4 +38,19 @@ class PluginClient
             ->getFilesystem()
             ->read($fullPath);
     }
+
+    /**
+     * Get the content of a plugin file as a stream.
+     *
+     * @param string $path Relative file path from the plugin root.
+     * @return resource File content stream.
+     * @throws FilesystemException On repository read error.
+     */
+    public function getFileStream(string $path)
+    {
+        $fullPath = $this->getFilePath($path);
+        return $this->config
+            ->getFilesystem()
+            ->readStream($fullPath);
+    }
 }

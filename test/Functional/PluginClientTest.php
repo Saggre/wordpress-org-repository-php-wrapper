@@ -40,4 +40,23 @@ class PluginClientTest extends FunctionalTestCase
         $expected = $this->getExpectedFileContent($slug, $version, $path);
         $this->assertEquals($expected, $file);
     }
+
+    /**
+     * @dataProvider dataProviderTestGetFile
+     */
+    public function testGetFileStream(string $slug, string $version, string $path)
+    {
+        $config = new PluginClientConfig($slug, $version);
+        $client = new PluginClient($config);
+
+        try {
+            $fileStream = $client->getFileStream($path);
+        } catch (FilesystemException $e) {
+            $this->fail("Failed to read file: {$e->getMessage()}");
+        }
+
+        $expected = $this->getExpectedFileContent($slug, $version, $path);
+        $this->assertIsResource($fileStream);
+        $this->assertEquals($expected, stream_get_contents($fileStream));
+    }
 }
