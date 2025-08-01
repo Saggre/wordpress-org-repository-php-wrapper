@@ -4,6 +4,7 @@ use League\Flysystem\FilesystemException;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToListContents;
 use Saggre\WordPress\Repository\Config\PluginClientConfig;
+use Saggre\WordPress\Repository\Exception\LogReportException;
 use Saggre\WordPress\Repository\PluginClient;
 use Saggre\WordPress\Repository\Test\Functional\FunctionalTestCase;
 
@@ -108,5 +109,23 @@ class PluginClientTest extends FunctionalTestCase
         );
 
         $client->getDirectory('/invalid/path')->toArray();
+    }
+
+    /**
+     * @dataProvider dataProviderTestGetFile
+     */
+    public function testGetLogReport(string $slug, string $version, string $path)
+    {
+        $config = new PluginClientConfig($slug, $version);
+        $client = new PluginClient($config);
+
+        try {
+            $file = $client->getLogReport($path);
+        } catch (LogReportException $e) {
+            $this->fail("Failed to read log report: {$e->getMessage()}");
+        }
+
+        $expected = $this->getExpectedFileContent($slug, $version, $path);
+        $this->assertEquals($expected, $file);
     }
 }

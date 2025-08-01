@@ -6,11 +6,14 @@ use League\Flysystem\DirectoryListing;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\UnableToListContents;
 use Saggre\WordPress\Repository\Config\PluginClientConfig;
+use Saggre\WordPress\Repository\Exception\LogReportException;
 use Symfony\Component\Filesystem\Path;
 
 class PluginClient
 {
     public const CLIENT_VERSION = '1.0.0';
+
+    protected XmlService $xmlService;
 
     public function __construct(
         protected PluginClientConfig $config,
@@ -72,5 +75,45 @@ class PluginClient
         $fullPath = $this->getPath($path);
 
         return $filesystem->listContents($fullPath, false);
+    }
+
+    public function getLogReport(string $path, string $start = '10000', string $end = 'HEAD'): string
+    {
+        $client = $this->config->getClient();
+        $path = htmlspecialchars($this->getPath($path), ENT_NOQUOTES, 'UTF-8');
+
+        $headers = [
+            'Content-Type' => 'application/xml',
+        ];
+
+        ob_start();
+        echo '<?xml version="1.0" encoding="utf-8"?>', "\n";
+        echo "<S:log-report xmlns:S=\"svn:\">\n";
+        echo "<S:start-revision>{$start}</S:start-revision>\n";
+        echo "<S:end-revision>{$end}</S:end-revision>\n";
+        echo "<S:path>/akismet/license.txt</S:path>\n";
+        echo '</S:log-report>';
+        $body = ob_get_clean();
+
+        $response = $client->request('REPORT', '/', $body, $headers);
+
+        /*
+         * <?xml version="1.0" encoding="utf-8"?>
+<D:error xmlns:D="DAV:" xmlns:m="http://apache.org/dav/xmlns" xmlns:C="svn:">
+<C:error/>
+<m:human-readable errcode="160013">
+File not found: revision 1, path '/woocommerce/tags/9.6.2/readme.txt'
+</m:human-readable>
+</D:error>
+         */
+
+        if ($response['statusCode'] !== 200) {
+            throw new LogReportException(
+                "Failed to get log report for {$path}",
+                $response['statusCode']
+            );
+        }
+
+        return $response['body'];
     }
 }

@@ -99,4 +99,15 @@ class PluginClientConfig implements ClientConfigInterface
     {
         return $this->version;
     }
+
+    /**
+     * Get the WebDAV client instance.
+     *
+     * @return Client
+     * @codeCoverageIgnore
+     */
+    public function getClient(): Client
+    {
+        return $this->client;
+    }
 }
