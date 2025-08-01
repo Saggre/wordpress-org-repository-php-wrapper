@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use League\Flysystem\Filesystem;
 use League\Flysystem\WebDAV\WebDAVAdapter;
 use Sabre\DAV\Client;
+use Saggre\WordPress\Repository\PluginClient;
 
 class PluginClientConfig implements ClientConfigInterface
 {
@@ -18,12 +19,14 @@ class PluginClientConfig implements ClientConfigInterface
      * @param string $slug
      * @param string $version
      * @param string $baseUrl
+     * @param string $userAgent
      * @throws InvalidArgumentException On empty slug or version.
      */
     public function __construct(
         protected string $slug,
         protected string $version = 'trunk',
         protected string $baseUrl = 'https://plugins.svn.wordpress.org',
+        protected string $userAgent = 'wordpress-org-php-repository-wrapper/' . PluginClient::CLIENT_VERSION
     ) {
         if (empty($slug)) {
             throw new InvalidArgumentException('Plugin slug cannot be empty.');
@@ -33,8 +36,22 @@ class PluginClientConfig implements ClientConfigInterface
             throw new InvalidArgumentException('Plugin version cannot be empty.');
         }
 
-        $this->client = new Client(['baseUri' => $this->baseUrl]);
+        $this->client = $this->createClient();
         $this->filesystem = $this->createFilesystem($this->client);
+    }
+
+    /**
+     * Create a SabreDAV Client instance.
+     *
+     * @return Client
+     * @codeCoverageIgnore
+     */
+    protected function createClient(): Client
+    {
+        $client = new Client(['baseUri' => $this->baseUrl]);
+        $client->addCurlSetting(CURLOPT_USERAGENT, $this->userAgent);
+
+        return $client;
     }
 
     /**
