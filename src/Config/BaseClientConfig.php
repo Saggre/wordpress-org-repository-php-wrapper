@@ -16,11 +16,11 @@ abstract class BaseClientConfig
         protected string $userAgent
     ) {
         if (empty($slug)) {
-            throw new InvalidArgumentException('Plugin slug cannot be empty.');
+            throw new InvalidArgumentException('Slug cannot be empty.');
         }
 
         if (empty($version)) {
-            throw new InvalidArgumentException('Plugin version cannot be empty.');
+            throw new InvalidArgumentException('Version cannot be empty.');
         }
     }
 
