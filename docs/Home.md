@@ -1,5 +1,5 @@
 
-This is an automatically generated documentation for **Documentation**.
+This is an automatically generated documentation for **Wordpress.org Repository API wrapper**.
 
 ## Namespaces
 

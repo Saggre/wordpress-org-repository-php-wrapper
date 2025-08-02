@@ -38,6 +38,6 @@
     "saggre/phpdocumentor-markdown": "^1.0"
   },
   "scripts": {
-    "create-docs": "phpdoc --directory=src --target=docs --template='vendor/saggre/phpdocumentor-markdown/themes/markdown'"
+    "create-docs": "phpdoc --directory=src --target=docs"
   }
 }
