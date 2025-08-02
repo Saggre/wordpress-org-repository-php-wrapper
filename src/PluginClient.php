@@ -6,7 +6,7 @@ use League\Flysystem\DirectoryListing;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\UnableToListContents;
 use Saggre\WordPress\Repository\Config\PluginClientConfig;
-use Symfony\Component\Filesystem\Path;
+use Saggre\WordPress\Repository\Util\Path;
 
 class PluginClient
 {
@@ -25,7 +25,12 @@ class PluginClient
      */
     protected function getPath(string $path): string
     {
-        return Path::join($this->config->getSlug(), 'tags', $this->config->getVersion(), $path);
+        return (new Path('/'))->join(
+            $this->config->getSlug(),
+            'tags',
+            $this->config->getVersion(),
+            $path
+        );
     }
 
     /**

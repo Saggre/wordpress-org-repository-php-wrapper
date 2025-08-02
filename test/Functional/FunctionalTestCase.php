@@ -3,7 +3,7 @@
 namespace Saggre\WordPress\Repository\Test\Functional;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Filesystem\Path;
+use Saggre\WordPress\Repository\Util\Path;
 
 class FunctionalTestCase extends TestCase
 {
@@ -17,7 +17,13 @@ class FunctionalTestCase extends TestCase
      */
     protected function getExpectedContentPath(string $slug, string $version, string $path): string
     {
-        return Path::join(__DIR__, 'expected', $slug, $version, $path);
+        return (new Path('/'))->join(
+            __DIR__,
+            'expected',
+            $slug,
+            $version,
+            $path
+        );
     }
 
     /**
