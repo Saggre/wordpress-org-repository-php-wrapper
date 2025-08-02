@@ -2,6 +2,9 @@
 
 namespace Saggre\WordPress\Repository\Util;
 
+/**
+ * Utility class for handling file paths.
+ */
 class Path
 {
     public function __construct(

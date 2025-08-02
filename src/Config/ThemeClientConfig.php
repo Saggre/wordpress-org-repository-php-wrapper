@@ -5,6 +5,9 @@ namespace Saggre\WordPress\Repository\Config;
 use InvalidArgumentException;
 use Saggre\WordPress\Repository\ThemeClient;
 
+/**
+ * Configuration class for the WordPress.org Theme Client.
+ */
 class ThemeClientConfig extends BaseClientConfig
 {
     /**

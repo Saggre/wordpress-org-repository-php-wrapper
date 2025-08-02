@@ -5,6 +5,9 @@ namespace Saggre\WordPress\Repository;
 use Saggre\WordPress\Repository\Config\ThemeClientConfig;
 use Saggre\WordPress\Repository\Util\Path;
 
+/**
+ * WordPress.org theme client.
+ */
 class ThemeClient extends BaseClient
 {
     public function __construct(

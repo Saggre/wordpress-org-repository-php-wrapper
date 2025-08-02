@@ -5,6 +5,9 @@ namespace Saggre\WordPress\Repository\Config;
 use InvalidArgumentException;
 use Saggre\WordPress\Repository\PluginClient;
 
+/**
+ * Configuration class for the WordPress.org Plugin Client.
+ */
 class PluginClientConfig extends BaseClientConfig
 {
     /**

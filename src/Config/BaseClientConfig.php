@@ -4,15 +4,11 @@ namespace Saggre\WordPress\Repository\Config;
 
 use InvalidArgumentException;
 
+/**
+ * Base configuration class for WordPress.org plugin and theme clients.
+ */
 abstract class BaseClientConfig
 {
-    /**
-     * @param string $slug
-     * @param string $version
-     * @param string $baseUrl
-     * @param string $userAgent
-     * @throws InvalidArgumentException On empty slug or version.
-     */
     public function __construct(
         protected string $slug,
         protected string $version,

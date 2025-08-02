@@ -10,6 +10,9 @@ use League\Flysystem\WebDAV\WebDAVAdapter;
 use Sabre\DAV\Client;
 use Saggre\WordPress\Repository\Util\Path;
 
+/**
+ * Base class for WordPress.org plugin and theme clients.
+ */
 abstract class BaseClient
 {
     public const CLIENT_VERSION = '1.0.0';
