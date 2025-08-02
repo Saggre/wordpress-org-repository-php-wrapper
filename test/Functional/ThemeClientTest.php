@@ -5,23 +5,18 @@ namespace Saggre\WordPress\Repository\Test\Functional;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToListContents;
-use Saggre\WordPress\Repository\Config\PluginClientConfig;
-use Saggre\WordPress\Repository\PluginClient;
+use Saggre\WordPress\Repository\Config\ThemeClientConfig;
+use Saggre\WordPress\Repository\ThemeClient;
 
-class PluginClientTest extends FunctionalTestCase
+class ThemeClientTest extends FunctionalTestCase
 {
     public static function dataProviderTestGetFile(): iterable
     {
         return [
             [
-                'woocommerce',
-                '9.6.2',
-                'readme.txt',
-            ],
-            [
-                'wordpress-seo',
-                '25.5',
-                'wp-seo.php',
+                'twentytwentyfive',
+                '1.2',
+                'theme.json',
             ],
         ];
     }
@@ -31,8 +26,8 @@ class PluginClientTest extends FunctionalTestCase
      */
     public function testGetFile(string $slug, string $version, string $path)
     {
-        $config = new PluginClientConfig($slug, $version);
-        $client = new PluginClient($config);
+        $config = new ThemeClientConfig($slug, $version);
+        $client = new ThemeClient($config);
 
         try {
             $file = $client->getFile($path);
@@ -49,8 +44,8 @@ class PluginClientTest extends FunctionalTestCase
      */
     public function testGetFileStream(string $slug, string $version, string $path)
     {
-        $config = new PluginClientConfig($slug, $version);
-        $client = new PluginClient($config);
+        $config = new ThemeClientConfig($slug, $version);
+        $client = new ThemeClient($config);
 
         try {
             $fileStream = $client->getFileStream($path);
@@ -67,13 +62,8 @@ class PluginClientTest extends FunctionalTestCase
     {
         return [
             [
-                'woocommerce',
-                '9.6.2',
-                '/i18n',
-            ],
-            [
-                'wordpress-seo',
-                '25.5',
+                'twentytwentyfive',
+                '1.2',
                 '/',
             ],
         ];
@@ -84,8 +74,8 @@ class PluginClientTest extends FunctionalTestCase
      */
     public function testGetDirectory(string $slug, string $version, string $path)
     {
-        $config = new PluginClientConfig($slug, $version);
-        $client = new PluginClient($config);
+        $config = new ThemeClientConfig($slug, $version);
+        $client = new ThemeClient($config);
 
         try {
             $directory = $client->getDirectory($path);
@@ -100,12 +90,12 @@ class PluginClientTest extends FunctionalTestCase
 
     public function testGetDirectoryInvalidPath()
     {
-        $config = new PluginClientConfig('woocommerce', '9.6.2');
-        $client = new PluginClient($config);
+        $config = new ThemeClientConfig('twentytwentyfive', '0.0.1');
+        $client = new ThemeClient($config);
 
         $this->expectException(UnableToListContents::class);
         $this->expectExceptionMessage(
-            "Unable to list contents for 'woocommerce/tags/9.6.2/invalid/path', shallow listing\n\nReason: Not Found"
+            "Unable to list contents for 'twentytwentyfive/0.0.1/invalid/path', shallow listing\n\nReason: Not Found"
         );
 
         $client->getDirectory('/invalid/path')->toArray();

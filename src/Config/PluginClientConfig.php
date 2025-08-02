@@ -5,15 +5,13 @@ namespace Saggre\WordPress\Repository\Config;
 use InvalidArgumentException;
 use Saggre\WordPress\Repository\PluginClient;
 
-class PluginClientConfig
+class PluginClientConfig extends BaseClientConfig
 {
     /**
-     * Create a new PluginClientConfig instance.
-     *
-     * @param string $slug
-     * @param string $version
-     * @param string $baseUrl
-     * @param string $userAgent
+     * @param string $slug The slug of the plugin.
+     * @param string $version The version of the plugin, defaults to 'trunk'.
+     * @param string $baseUrl The base URL for the plugin repository.
+     * @param string $userAgent The user agent string for HTTP request.
      * @throws InvalidArgumentException On empty slug or version.
      */
     public function __construct(
@@ -22,56 +20,6 @@ class PluginClientConfig
         protected string $baseUrl = 'https://plugins.svn.wordpress.org',
         protected string $userAgent = 'wordpress-org-php-repository-wrapper/' . PluginClient::CLIENT_VERSION
     ) {
-        if (empty($slug)) {
-            throw new InvalidArgumentException('Plugin slug cannot be empty.');
-        }
-
-        if (empty($version)) {
-            throw new InvalidArgumentException('Plugin version cannot be empty.');
-        }
-    }
-
-    /**
-     * Get the slug of the plugin.
-     *
-     * @return string
-     * @codeCoverageIgnore
-     */
-    public function getSlug(): string
-    {
-        return $this->slug;
-    }
-
-    /**
-     * Get the version of the plugin.
-     *
-     * @return string
-     * @codeCoverageIgnore
-     */
-    public function getVersion(): string
-    {
-        return $this->version;
-    }
-
-    /**
-     * Get the base URL for the plugin repository.
-     *
-     * @return string
-     * @codeCoverageIgnore
-     */
-    public function getBaseUrl(): string
-    {
-        return $this->baseUrl;
-    }
-
-    /**
-     * Get the user agent string for the plugin client.
-     *
-     * @return string
-     * @codeCoverageIgnore
-     */
-    public function getUserAgent(): string
-    {
-        return $this->userAgent;
+        parent::__construct($slug, $version, $baseUrl, $userAgent);
     }
 }
