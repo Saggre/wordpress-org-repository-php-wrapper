@@ -3,8 +3,11 @@
 namespace Saggre\WordPress\Repository;
 
 use League\Flysystem\DirectoryListing;
+use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\UnableToListContents;
+use League\Flysystem\WebDAV\WebDAVAdapter;
+use Sabre\DAV\Client;
 use Saggre\WordPress\Repository\Config\PluginClientConfig;
 use Saggre\WordPress\Repository\Util\Path;
 
@@ -12,9 +15,53 @@ class PluginClient
 {
     public const CLIENT_VERSION = '1.0.0';
 
+    protected Client $client;
+    protected Filesystem $filesystem;
+
     public function __construct(
         protected PluginClientConfig $config,
     ) {
+        $this->client = $this->createClient();
+        $this->filesystem = $this->createFilesystem($this->client);
+    }
+
+    /**
+     * Create a SabreDAV Client instance.
+     *
+     * @return Client
+     * @codeCoverageIgnore
+     */
+    protected function createClient(): Client
+    {
+        $client = new Client(['baseUri' => $this->config->getBaseUrl()]);
+        $client->addCurlSetting(CURLOPT_USERAGENT, $this->config->getUserAgent());
+
+        return $client;
+    }
+
+    /**
+     * Create a League\Flysystem Filesystem instance using the WebDAV adapter.
+     *
+     * @param Client $client
+     * @return Filesystem
+     * @codeCoverageIgnore
+     */
+    protected function createFilesystem(Client $client): Filesystem
+    {
+        $adapter = new WebDAVAdapter($client);
+
+        return new Filesystem($adapter);
+    }
+
+    /**
+     * Get the League\Flysystem Filesystem instance.
+     *
+     * @return Filesystem
+     * @codeCoverageIgnore
+     */
+    public function getFilesystem(): Filesystem
+    {
+        return $this->filesystem;
     }
 
     /**
@@ -43,9 +90,8 @@ class PluginClient
     public function getFile(string $path): string
     {
         $fullPath = $this->getPath($path);
-        return $this->config
-            ->getFilesystem()
-            ->read($fullPath);
+
+        return $this->getFilesystem()->read($fullPath);
     }
 
     /**
@@ -58,9 +104,8 @@ class PluginClient
     public function getFileStream(string $path)
     {
         $fullPath = $this->getPath($path);
-        return $this->config
-            ->getFilesystem()
-            ->readStream($fullPath);
+
+        return $this->getFilesystem()->readStream($fullPath);
     }
 
     /**
@@ -73,9 +118,8 @@ class PluginClient
      */
     public function getDirectory(string $path): DirectoryListing
     {
-        $filesystem = $this->config->getFilesystem();
         $fullPath = $this->getPath($path);
 
-        return $filesystem->listContents($fullPath, false);
+        return $this->getFilesystem()->listContents($fullPath, false);
     }
 }

@@ -3,16 +3,10 @@
 namespace Saggre\WordPress\Repository\Config;
 
 use InvalidArgumentException;
-use League\Flysystem\Filesystem;
-use League\Flysystem\WebDAV\WebDAVAdapter;
-use Sabre\DAV\Client;
 use Saggre\WordPress\Repository\PluginClient;
 
-class PluginClientConfig implements ClientConfigInterface
+class PluginClientConfig
 {
-    protected Client $client;
-    protected Filesystem $filesystem;
-
     /**
      * Create a new PluginClientConfig instance.
      *
@@ -35,47 +29,6 @@ class PluginClientConfig implements ClientConfigInterface
         if (empty($version)) {
             throw new InvalidArgumentException('Plugin version cannot be empty.');
         }
-
-        $this->client = $this->createClient();
-        $this->filesystem = $this->createFilesystem($this->client);
-    }
-
-    /**
-     * Create a SabreDAV Client instance.
-     *
-     * @return Client
-     * @codeCoverageIgnore
-     */
-    protected function createClient(): Client
-    {
-        $client = new Client(['baseUri' => $this->baseUrl]);
-        $client->addCurlSetting(CURLOPT_USERAGENT, $this->userAgent);
-
-        return $client;
-    }
-
-    /**
-     * Create a League\Flysystem Filesystem instance using the WebDAV adapter.
-     *
-     * @param Client $client
-     * @return Filesystem
-     * @codeCoverageIgnore
-     */
-    protected function createFilesystem(Client $client): Filesystem
-    {
-        $adapter = new WebDAVAdapter($client);
-        return new Filesystem($adapter);
-    }
-
-    /**
-     * Get the League\Flysystem Filesystem instance.
-     *
-     * @return Filesystem
-     * @codeCoverageIgnore
-     */
-    public function getFilesystem(): Filesystem
-    {
-        return $this->filesystem;
     }
 
     /**
@@ -98,5 +51,27 @@ class PluginClientConfig implements ClientConfigInterface
     public function getVersion(): string
     {
         return $this->version;
+    }
+
+    /**
+     * Get the base URL for the plugin repository.
+     *
+     * @return string
+     * @codeCoverageIgnore
+     */
+    public function getBaseUrl(): string
+    {
+        return $this->baseUrl;
+    }
+
+    /**
+     * Get the user agent string for the plugin client.
+     *
+     * @return string
+     * @codeCoverageIgnore
+     */
+    public function getUserAgent(): string
+    {
+        return $this->userAgent;
     }
 }
