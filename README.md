@@ -16,11 +16,9 @@ directories.
 composer require --dev saggre/wordpress-org-php-repository-wrapper
 ```
 
-## Usage
+## Usage examples
 
-### Plugin API
-
-#### Configure the client
+### Configuring the client
 
 #### Plugin client
 
@@ -37,6 +35,8 @@ $client = new PluginClient($config);
 $config = new ThemeClientConfig('twentytwentyfive', '1.2');
 $client = new ThemeClient($config);
 ```
+
+### Client methods
 
 #### Get plugin or theme file contents
 
