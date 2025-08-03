@@ -21,7 +21,7 @@ class PluginClientTest extends FunctionalTestCase
             [
                 'wordpress-seo',
                 '25.5',
-                'wp-seo.php',
+                'wpml-config.xml',
             ],
         ];
     }
