@@ -16,7 +16,7 @@ class PluginClientTest extends FunctionalTestCase
             [
                 'woocommerce',
                 '9.6.2',
-                'readme.txt',
+                'includes/class-wc-privacy-exporters.php',
             ],
             [
                 'wordpress-seo',
