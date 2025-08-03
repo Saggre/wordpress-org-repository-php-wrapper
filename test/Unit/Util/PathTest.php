@@ -100,6 +100,16 @@ class PathTest extends TestCase
                 'separator' => '\\',
                 'parts' => ['\\foo\\bar', 'baz'],
             ],
+            [
+                'expected' => 'foo/bar/baz',
+                'separator' => '/',
+                'parts' => ['foo', null, 'bar', 'baz'],
+            ],
+            [
+                'expected' => 'foo/baz',
+                'separator' => '/',
+                'parts' => ['foo', '', 'baz'],
+            ],
         ];
     }
 

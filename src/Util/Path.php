@@ -40,11 +40,15 @@ class Path
     /**
      * Joins two or more path strings into a canonical path.
      */
-    public function join(string ...$paths): string
+    public function join(?string ...$paths): string
     {
         $parts = [];
 
         foreach ($paths as $path) {
+            if (empty($path)) {
+                continue;
+            }
+
             $parts = array_merge($parts, self::explode($path));
         }
 

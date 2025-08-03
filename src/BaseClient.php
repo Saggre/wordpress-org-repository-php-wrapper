@@ -75,7 +75,7 @@ abstract class BaseClient
     {
         return (new Path('/'))->join(
             $this->config->getSlug(),
-            'tags',
+            $this->config->getVersion() === 'trunk' ? null : 'tags',
             $this->config->getVersion(),
             $path
         );
