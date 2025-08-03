@@ -45,7 +45,7 @@ protected string $userAgent
 ### __construct
 
 ```php
-public __construct(string $slug, string $version = 'trunk', string $baseUrl = 'https://plugins.svn.wordpress.org', string $userAgent = 'wordpress-org-php-repository-wrapper/' . PluginClient::CLIENT_VERSION): mixed
+public __construct(string $slug, string $version = 'trunk', string $baseUrl = 'https://plugins.svn.wordpress.org', string $userAgent = 'wordpress-org-repository-php-wrapper/' . PluginClient::CLIENT_VERSION): mixed
 ```
 
 **Parameters:**

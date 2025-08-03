@@ -2,7 +2,7 @@
 
 Use cases: Plugin and theme directory data, update checks, analysis.
 
-![Tests Status](https://github.com/Saggre/wordpress-org-php-repository-wrapper/workflows/Run%20tests/badge.svg?style=flat-square)
+![Tests Status](https://github.com/Saggre/wordpress-org-repository-php-wrapper/workflows/Run%20tests/badge.svg?style=flat-square)
 
 This library provides a simple way to access the WordPress.org [plugins](https://wordpress.org/plugins/)
 and [themes](https://wordpress.org/themes/) repositories. It allows you to retrieve raw plugin and theme files and list
@@ -13,7 +13,7 @@ directories.
 #### Installation via Composer
 
 ```bash
-composer require --dev saggre/wordpress-org-php-repository-wrapper
+composer require --dev saggre/wordpress-org-repository-php-wrapper
 ```
 
 ## Usage examples
@@ -98,10 +98,10 @@ $directory = array_map(
 
 ```bash
 # Clone the repository
-git clone git@github.com:Saggre/wordpress-org-php-repository-wrapper.git
+git clone git@github.com:Saggre/wordpress-org-repository-php-wrapper.git
 
 # Go to the cloned repository
-cd wordpress-org-php-repository-wrapper
+cd wordpress-org-repository-php-wrapper
 
 # Install dependencies
 composer install

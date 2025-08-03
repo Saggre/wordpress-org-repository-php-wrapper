@@ -1,5 +1,5 @@
 {
-  "name": "saggre/wordpress-org-php-repository-wrapper",
+  "name": "saggre/wordpress-org-repository-php-wrapper",
   "description": "A Wordpress.org Repository API wrapper for PHP",
   "license": "LGPL-3.0-only",
   "type": "library",

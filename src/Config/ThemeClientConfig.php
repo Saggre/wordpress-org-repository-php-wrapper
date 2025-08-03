@@ -21,7 +21,7 @@ class ThemeClientConfig extends BaseClientConfig
         protected string $slug,
         protected string $version = 'trunk',
         protected string $baseUrl = 'https://themes.svn.wordpress.org',
-        protected string $userAgent = 'wordpress-org-php-repository-wrapper/' . ThemeClient::CLIENT_VERSION
+        protected string $userAgent = 'wordpress-org-repository-php-wrapper/' . ThemeClient::CLIENT_VERSION
     ) {
         parent::__construct($slug, $version, $baseUrl, $userAgent);
     }

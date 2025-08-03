@@ -21,7 +21,7 @@ class PluginClientConfig extends BaseClientConfig
         protected string $slug,
         protected string $version = 'trunk',
         protected string $baseUrl = 'https://plugins.svn.wordpress.org',
-        protected string $userAgent = 'wordpress-org-php-repository-wrapper/' . PluginClient::CLIENT_VERSION
+        protected string $userAgent = 'wordpress-org-repository-php-wrapper/' . PluginClient::CLIENT_VERSION
     ) {
         parent::__construct($slug, $version, $baseUrl, $userAgent);
     }
