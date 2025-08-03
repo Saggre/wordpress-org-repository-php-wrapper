@@ -116,6 +116,6 @@ composer install
 
 Code documentation is available in the [docs](.docs/Home.md) directory.
 
-
 ## License
+
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSaggre%2Fwordpress-org-repository-php-wrapper.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FSaggre%2Fwordpress-org-repository-php-wrapper?ref=badge_large)
