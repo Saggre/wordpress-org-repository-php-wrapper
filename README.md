@@ -2,8 +2,7 @@
 
 Use cases: Plugin and theme directory data, update checks, analysis.
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Saggre/wordpress-org-repository-php-wrapper/test.yml)
-![Codecov](https://img.shields.io/codecov/c/github/Saggre/wordpress-org-repository-php-wrapper)
+[![codecov](https://img.shields.io/codecov/c/github/Saggre/wordpress-org-repository-php-wrapper)](https://codecov.io/gh/Saggre/wordpress-org-repository-php-wrapper)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSaggre%2Fwordpress-org-repository-php-wrapper.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FSaggre%2Fwordpress-org-repository-php-wrapper?ref=badge_shield)
 
 This library provides a simple way to access the WordPress.org [plugins](https://wordpress.org/plugins/)
