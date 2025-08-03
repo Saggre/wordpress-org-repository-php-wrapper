@@ -2,7 +2,8 @@
 
 Use cases: Plugin and theme directory data, update checks, analysis.
 
-![Tests Status](https://github.com/Saggre/wordpress-org-repository-php-wrapper/workflows/Run%20tests/badge.svg?style=flat-square)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Saggre/wordpress-org-repository-php-wrapper/test.yml)
+![Codecov](https://img.shields.io/codecov/c/github/Saggre/wordpress-org-repository-php-wrapper)
 
 This library provides a simple way to access the WordPress.org [plugins](https://wordpress.org/plugins/)
 and [themes](https://wordpress.org/themes/) repositories. It allows you to retrieve raw plugin and theme files and list
