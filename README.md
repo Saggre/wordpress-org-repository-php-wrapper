@@ -113,7 +113,7 @@ composer install
 
 ## Documentation
 
-Code documentation is available in the [docs](.docs/Home.md) directory.
+Code documentation is available in the [docs](./docs/Home.md) directory.
 
 ## License
 
