@@ -4,6 +4,7 @@ auth.json
 
 # IDE
 .idea
+_docs
 
 # PHPUnit / Tests
 phpunit.xml
