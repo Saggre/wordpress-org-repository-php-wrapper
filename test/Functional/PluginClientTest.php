@@ -2,6 +2,7 @@
 
 namespace Saggre\WordPress\Repository\Test\Functional;
 
+use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToListContents;
@@ -96,6 +97,20 @@ class PluginClientTest extends FunctionalTestCase
 
         $expected = $this->getExpectedDirectoryListing($slug, $version, $path);
         $this->assertEqualsCanonicalizing($expected, $directory);
+    }
+
+    public function testGetTagsDirectoryReturnsVersionList(): void
+    {
+        $client = new PluginClient(new PluginClientConfig('akismet'));
+        $listing = $client->getTagsDirectory();
+        $versions = iterator_to_array($listing);
+
+        $this->assertNotEmpty($versions);
+        $this->assertContainsOnlyInstancesOf(DirectoryAttributes::class, $versions);
+
+        foreach ($versions as $dir) {
+            $this->assertNotNull($dir->lastModified(), "Tag {$dir->path()} missing lastModified");
+        }
     }
 
     public function testGetDirectoryInvalidPath()
