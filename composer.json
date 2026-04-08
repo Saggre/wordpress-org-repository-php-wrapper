@@ -38,6 +38,7 @@
     "saggre/phpdocumentor-markdown": "^1.0"
   },
   "scripts": {
-    "create-docs": "phpdoc --directory=src --target=docs"
+    "create-docs": "phpdoc --directory=src --target=docs",
+    "test": "./vendor/bin/phpunit"
   }
 }
