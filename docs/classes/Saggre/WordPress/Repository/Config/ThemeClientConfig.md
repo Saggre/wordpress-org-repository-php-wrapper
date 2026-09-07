@@ -4,7 +4,7 @@ Configuration class for the WordPress.org Theme Client.
 ***
 
 * Full name: `\Saggre\WordPress\Repository\Config\ThemeClientConfig`
-* Parent class: [`\Saggre\WordPress\Repository\Config\BaseClientConfig`](./BaseClientConfig)
+* Parent class: [`\Saggre\WordPress\Repository\Config\RepositoryClientConfig`](./RepositoryClientConfig)
 
 ## Properties
 
@@ -24,42 +24,27 @@ protected string $version
 
 ***
 
-### baseUrl
-
-```php
-protected string $baseUrl
-```
-
-***
-
-### userAgent
-
-```php
-protected string $userAgent
-```
-
-***
-
 ## Methods
 
 ### __construct
 
 ```php
-public __construct(string $slug, string $version = 'trunk', string $baseUrl = 'https://themes.svn.wordpress.org', string $userAgent = 'wordpress-org-repository-php-wrapper/' . ThemeClient::CLIENT_VERSION): mixed
+public __construct(string $slug, string $version = 'trunk', string $baseUrl = 'https://themes.svn.wordpress.org', string $userAgent = 'wordpress-org-repository-php-wrapper/' . self::CLIENT_VERSION): mixed
 ```
 
 **Parameters:**
 
-| Parameter    | Type       | Description                                                                                                                                                                                                                                                                                        |
-|--------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `$slug`      | **string** | The slug of the theme.
-** @param string $version The version of the theme, defaults to 'trunk'.
-** @param string $baseUrl The base URL for the theme repository.
-** @param string $userAgent The user agent string for HTTP request.
-** @throws InvalidArgumentException On empty slug or version. |
-| `$version`   | **string** |                                                                                                                                                                                                                                                                                                    |
-| `$baseUrl`   | **string** |                                                                                                                                                                                                                                                                                                    |
-| `$userAgent` | **string** |                                                                                                                                                                                                                                                                                                    |
+| Parameter    | Type       | Description                                    |
+|--------------|------------|------------------------------------------------|
+| `$slug`      | **string** | The slug of the theme.                         |
+| `$version`   | **string** | The version of the theme, defaults to 'trunk'. |
+| `$baseUrl`   | **string** | The base URL for the theme repository.         |
+| `$userAgent` | **string** | The user agent string for HTTP request.        |
+
+**Throws:**
+
+On empty slug or version.
+- [`InvalidArgumentException`](../../../../InvalidArgumentException)
 
 ***
 
@@ -80,31 +65,16 @@ public __construct(string $slug, string $version, string $baseUrl, string $userA
 | `$baseUrl`   | **string** |             |
 | `$userAgent` | **string** |             |
 
-***
+**Throws:**
 
-### getSlug
-
-Get the slug of the plugin.
-
-```php
-public getSlug(): string
-```
-
-***
-
-### getVersion
-
-Get the version of the plugin.
-
-```php
-public getVersion(): string
-```
+On empty slug or version.
+- [`InvalidArgumentException`](../../../../InvalidArgumentException)
 
 ***
 
 ### getBaseUrl
 
-Get the base URL for the plugin repository.
+Get the base URL the client sends its requests to.
 
 ```php
 public getBaseUrl(): string
@@ -114,10 +84,30 @@ public getBaseUrl(): string
 
 ### getUserAgent
 
-Get the user agent string for the plugin client.
+Get the user agent string for the client.
 
 ```php
 public getUserAgent(): string
+```
+
+***
+
+### getSlug
+
+Get the slug of the plugin or theme.
+
+```php
+public getSlug(): string
+```
+
+***
+
+### getVersion
+
+Get the version of the plugin or theme.
+
+```php
+public getVersion(): string
 ```
 
 ***

@@ -2,52 +2,21 @@
 
 namespace Saggre\WordPress\Repository\Config;
 
-use InvalidArgumentException;
-
 /**
- * Base configuration class for WordPress.org plugin and theme clients.
+ * Base configuration class for WordPress.org clients.
  */
 abstract class BaseClientConfig
 {
+    public const CLIENT_VERSION = '1.0.0';
+
     public function __construct(
-        protected string $slug,
-        protected string $version,
         protected string $baseUrl,
         protected string $userAgent
     ) {
-        if (empty($slug)) {
-            throw new InvalidArgumentException('Slug cannot be empty.');
-        }
-
-        if (empty($version)) {
-            throw new InvalidArgumentException('Version cannot be empty.');
-        }
     }
 
     /**
-     * Get the slug of the plugin.
-     *
-     * @return string
-     * @codeCoverageIgnore
-     */
-    public function getSlug(): string
-    {
-        return $this->slug;
-    }
-
-    /**
-     * Get the version of the plugin.
-     *
-     * @return string
-     * @codeCoverageIgnore
-     */
-    public function getVersion(): string
-    {
-        return $this->version;
-    }
-
-    /**
-     * Get the base URL for the plugin repository.
+     * Get the base URL the client sends its requests to.
      *
      * @return string
      * @codeCoverageIgnore
@@ -58,7 +27,7 @@ abstract class BaseClientConfig
     }
 
     /**
-     * Get the user agent string for the plugin client.
+     * Get the user agent string for the client.
      *
      * @return string
      * @codeCoverageIgnore

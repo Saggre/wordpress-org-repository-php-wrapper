@@ -68,14 +68,14 @@ public explode(string $path): array
 Joins two or more path strings into a canonical path.
 
 ```php
-public join(string $paths): string
+public join(?string $paths): string
 ```
 
 **Parameters:**
 
-| Parameter | Type       | Description |
-|-----------|------------|-------------|
-| `$paths`  | **string** |             |
+| Parameter | Type        | Description |
+|-----------|-------------|-------------|
+| `$paths`  | **?string** |             |
 
 ***
 

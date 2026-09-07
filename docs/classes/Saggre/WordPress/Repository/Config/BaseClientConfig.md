@@ -1,28 +1,18 @@
 
-Base configuration class for WordPress.org plugin and theme clients.
+Base configuration class for WordPress.org clients.
 
 ***
 
 * Full name: `\Saggre\WordPress\Repository\Config\BaseClientConfig`
 * This class is an **Abstract class**
 
+## Constants
+
+| Constant         | Visibility | Type | Value   |
+|------------------|------------|------|---------|
+| `CLIENT_VERSION` | public     |      | '1.0.0' |
+
 ## Properties
-
-### slug
-
-```php
-protected string $slug
-```
-
-***
-
-### version
-
-```php
-protected string $version
-```
-
-***
 
 ### baseUrl
 
@@ -45,43 +35,21 @@ protected string $userAgent
 ### __construct
 
 ```php
-public __construct(string $slug, string $version, string $baseUrl, string $userAgent): mixed
+public __construct(string $baseUrl, string $userAgent): mixed
 ```
 
 **Parameters:**
 
 | Parameter    | Type       | Description |
 |--------------|------------|-------------|
-| `$slug`      | **string** |             |
-| `$version`   | **string** |             |
 | `$baseUrl`   | **string** |             |
 | `$userAgent` | **string** |             |
 
 ***
 
-### getSlug
-
-Get the slug of the plugin.
-
-```php
-public getSlug(): string
-```
-
-***
-
-### getVersion
-
-Get the version of the plugin.
-
-```php
-public getVersion(): string
-```
-
-***
-
 ### getBaseUrl
 
-Get the base URL for the plugin repository.
+Get the base URL the client sends its requests to.
 
 ```php
 public getBaseUrl(): string
@@ -91,7 +59,7 @@ public getBaseUrl(): string
 
 ### getUserAgent
 
-Get the user agent string for the plugin client.
+Get the user agent string for the client.
 
 ```php
 public getUserAgent(): string

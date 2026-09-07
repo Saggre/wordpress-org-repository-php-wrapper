@@ -28,7 +28,7 @@
     }
   },
   "require": {
-    "php": "^8.0.2",
+    "php": "^8.1",
     "ext-curl": "*",
     "league/flysystem": "^3.30",
     "league/flysystem-webdav": "^3.30"
@@ -38,7 +38,7 @@
     "saggre/phpdocumentor-markdown": "^1.0"
   },
   "scripts": {
-    "create-docs": "phpdoc --directory=src --target=docs",
+    "create-docs": "phpdoc --directory=src --target=docs --template='vendor/saggre/phpdocumentor-markdown/themes/markdown' --title='Wordpress.org Repository API wrapper'",
     "test": "./vendor/bin/phpunit"
   }
 }

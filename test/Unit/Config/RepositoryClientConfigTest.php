@@ -5,13 +5,13 @@ namespace Saggre\WordPress\Repository\Test\Unit\Config;
 use Closure;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saggre\WordPress\Repository\Config\BaseClientConfig;
+use Saggre\WordPress\Repository\Config\RepositoryClientConfig;
 
-class BaseClientConfigTest extends TestCase
+class RepositoryClientConfigTest extends TestCase
 {
     protected function getBuilder(): Closure
     {
-        return fn(array $params) => new class (...$params) extends BaseClientConfig {
+        return fn(array $params) => new class (...$params) extends RepositoryClientConfig {
         };
     }
 
