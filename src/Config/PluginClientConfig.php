@@ -3,12 +3,11 @@
 namespace Saggre\WordPress\Repository\Config;
 
 use InvalidArgumentException;
-use Saggre\WordPress\Repository\PluginClient;
 
 /**
  * Configuration class for the WordPress.org Plugin Client.
  */
-class PluginClientConfig extends BaseClientConfig
+class PluginClientConfig extends RepositoryClientConfig
 {
     /**
      * @param string $slug The slug of the plugin.
@@ -20,8 +19,8 @@ class PluginClientConfig extends BaseClientConfig
     public function __construct(
         protected string $slug,
         protected string $version = 'trunk',
-        protected string $baseUrl = 'https://plugins.svn.wordpress.org',
-        protected string $userAgent = 'wordpress-org-repository-php-wrapper/' . PluginClient::CLIENT_VERSION
+        string $baseUrl = 'https://plugins.svn.wordpress.org',
+        string $userAgent = 'wordpress-org-repository-php-wrapper/' . self::CLIENT_VERSION
     ) {
         parent::__construct($slug, $version, $baseUrl, $userAgent);
     }

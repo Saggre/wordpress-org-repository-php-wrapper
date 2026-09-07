@@ -7,7 +7,11 @@ use League\Flysystem\FilesystemException;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToListContents;
 use Saggre\WordPress\Repository\Config\PluginClientConfig;
+use Saggre\WordPress\Repository\Model\LogEntry;
+use Saggre\WordPress\Repository\Model\LogPath;
+use Saggre\WordPress\Repository\Model\LogPathAction;
 use Saggre\WordPress\Repository\PluginClient;
+use Saggre\WordPress\Repository\Util\Path;
 
 class PluginClientTest extends FunctionalTestCase
 {
@@ -124,5 +128,93 @@ class PluginClientTest extends FunctionalTestCase
         );
 
         $client->getDirectory('/invalid/path')->toArray();
+    }
+
+    public function testGetDirectoryDeepListsSubdirectories()
+    {
+        $client = new PluginClient(new PluginClientConfig('classic-editor', '1.6.7'));
+
+        $shallow = $client->getDirectory('')->toArray();
+        $deep = $client->getDirectory('', true)->toArray();
+        $paths = array_map(fn(StorageAttributes $item) => $item->path(), $deep);
+
+        self::assertCount(5, $shallow);
+        self::assertCount(8, $deep);
+        self::assertContains('classic-editor/tags/1.6.7/scripts/post.js', $paths);
+    }
+
+    public function testExportWritesTheTree()
+    {
+        $client = new PluginClient(new PluginClientConfig('classic-editor', '1.6.7'));
+        $destination = $this->getExportDestination();
+
+        $files = $client->export($destination);
+        $nested = (new Path(DIRECTORY_SEPARATOR))->join($destination, 'scripts', 'post.js');
+
+        self::assertSame(6, $files);
+        self::assertFileExists($nested);
+        self::assertStringEqualsFile($nested, $client->getFile('scripts/post.js'));
+        self::assertStringEqualsFile(
+            (new Path(DIRECTORY_SEPARATOR))->join($destination, 'classic-editor.php'),
+            $client->getFile('classic-editor.php')
+        );
+    }
+
+    public function testGetLogReadsPluginHistory()
+    {
+        $client = new PluginClient(new PluginClientConfig('hello-dolly'));
+        $log = $client->getLog(3);
+
+        self::assertNotEmpty($log);
+        self::assertLessThanOrEqual(3, count($log));
+        self::assertContainsOnlyInstancesOf(LogEntry::class, $log);
+
+        $revisions = array_column($log, 'revision');
+        $sorted = $revisions;
+        rsort($sorted);
+
+        self::assertSame($sorted, $revisions, 'Revisions are not ordered newest first.');
+
+        foreach ($log as $entry) {
+            self::assertNotEmpty($entry->author);
+            self::assertNotNull($entry->date);
+            self::assertNotEmpty($entry->paths);
+            self::assertContainsOnlyInstancesOf(LogPath::class, $entry->paths);
+
+            foreach ($entry->paths as $path) {
+                self::assertStringStartsWith('/hello-dolly/', $path->path);
+            }
+        }
+    }
+
+    public function testGetLogReadsARevisionRange()
+    {
+        $client = new PluginClient(new PluginClientConfig('hello-dolly'));
+        $log = $client->getLog(1, 2995248, 2995248);
+
+        self::assertCount(1, $log);
+        self::assertSame(2995248, $log[0]->revision);
+        self::assertSame('priethor', $log[0]->author);
+
+        $tag = $log[0]->paths[0];
+
+        self::assertSame('/hello-dolly/tags/1.7.3', $tag->path);
+        self::assertSame(LogPathAction::Added, $tag->action);
+        self::assertSame('dir', $tag->nodeKind);
+        self::assertSame('/hello-dolly/trunk', $tag->copyFromPath);
+        self::assertSame(2995208, $tag->copyFromRevision);
+    }
+
+    public function testGetRepositoryLogReadsEveryPlugin()
+    {
+        $client = new PluginClient(new PluginClientConfig('hello-dolly'));
+        $log = $client->getRepositoryLog(2);
+
+        self::assertCount(2, $log);
+        self::assertGreaterThan($log[1]->revision, $log[0]->revision);
+
+        foreach ($log as $entry) {
+            self::assertNotEmpty($entry->paths);
+        }
     }
 }

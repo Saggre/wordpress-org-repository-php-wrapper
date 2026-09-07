@@ -6,8 +6,8 @@ Use cases: Plugin and theme directory data, update checks, analysis.
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSaggre%2Fwordpress-org-repository-php-wrapper.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FSaggre%2Fwordpress-org-repository-php-wrapper?ref=badge_shield)
 
 This library provides a simple way to access the WordPress.org [plugins](https://wordpress.org/plugins/)
-and [themes](https://wordpress.org/themes/) repositories. It allows you to retrieve raw plugin and theme files and list
-directories.
+and [themes](https://wordpress.org/themes/) repositories. It allows you to retrieve raw plugin and theme files, list
+directories, read commit logs, query the plugin directory and download releases.
 
 ## Installation
 
@@ -68,6 +68,8 @@ $content = stream_get_contents($file);
 
 #### List plugin or theme directory contents
 
+Pass `true` as the second argument to list the contents of subdirectories as well.
+
 ```php
 use League\Flysystem\StorageAttributes;
 
@@ -93,6 +95,115 @@ $directory = array_map(
  *     ...
  * );
  */
+```
+
+#### List a plugin's tagged versions
+
+```php
+$tags = $client->getTagsDirectory();
+
+// array('1.5', '1.6', '1.7.2')
+$versions = array_map(fn($tag) => basename($tag->path()), $tags->toArray());
+```
+
+#### Read the commit log
+
+`getLog()` reads the history of the configured plugin or theme, `getRepositoryLog()` the history of every plugin or
+theme at once. Both return the newest revision first, and both accept a revision range.
+
+```php
+$log = $client->getLog(limit: 10);
+
+foreach ($log as $entry) {
+    echo "r{$entry->revision} by {$entry->author} at {$entry->date->format('c')}: {$entry->message}\n";
+
+    foreach ($entry->paths as $path) {
+        // Tags are copies, so a copied path resolves the release a version was cut from.
+        echo "  [{$path->action->value}] {$path->path} {$path->copyFromPath}\n";
+    }
+}
+```
+
+#### Export a tagged version
+
+Writes the whole tree of the configured version to a local directory, which recovers releases that are no longer
+served by the distribution host.
+
+```php
+$files = $client->export('/tmp/hello-dolly-1.7.2');
+```
+
+### Plugin API client
+
+Reads plugin metadata from the WordPress.org plugin API.
+
+```php
+use Saggre\WordPress\Repository\PluginApiClient;
+
+$client = new PluginApiClient();
+```
+
+#### Enumerate plugins
+
+Switch off the bulky prose and switch on the contributors to keep a page of results small.
+
+```php
+use Saggre\WordPress\Repository\Model\PluginBrowse;
+use Saggre\WordPress\Repository\Model\PluginQuery;
+
+$result = $client->queryPlugins(new PluginQuery(
+    browse: PluginBrowse::Updated,
+    page: 1,
+    perPage: 250,
+    fields: [
+        'sections' => false,
+        'description' => false,
+        'screenshots' => false,
+        'icons' => false,
+        'contributors' => true,
+    ],
+));
+
+// 71793 plugins on 288 pages, newest last_updated first
+echo "{$result->results} plugins on {$result->pages} pages\n";
+
+foreach ($result->plugins as $plugin) {
+    echo "{$plugin->slug} {$plugin->version} {$plugin->lastUpdated->format('c')}\n";
+}
+```
+
+#### Read one plugin's record
+
+```php
+$info = $client->getPluginInformation('hello-dolly');
+
+// array('1.5' => 'https://downloads.wordpress.org/plugin/hello-dolly.1.5.zip', ...)
+$versions = $info->versions;
+```
+
+#### Check whether a plugin is closed
+
+```php
+$status = $client->getPluginStatus('hana-flv-player');
+
+if ($status->closed) {
+    // 'security-issue' as of 2021-06-21
+    echo "{$status->reason} as of {$status->closedDate->format('Y-m-d')}\n";
+}
+```
+
+### Plugin download client
+
+Downloads plugin releases from the WordPress.org distribution host. Only the current release is available without a
+version, and withdrawn releases are no longer served even when they still exist in SVN.
+
+```php
+use Saggre\WordPress\Repository\PluginDownloadClient;
+
+$client = new PluginDownloadClient();
+
+$zip = $client->getZip('hello-dolly', '1.7.2');
+$stream = $client->getZipStream('hello-dolly');
 ```
 
 ## Running tests

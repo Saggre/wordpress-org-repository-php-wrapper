@@ -28,7 +28,7 @@
     }
   },
   "require": {
-    "php": "^8.0.2",
+    "php": "^8.1",
     "ext-curl": "*",
     "league/flysystem": "^3.30",
     "league/flysystem-webdav": "^3.30"
