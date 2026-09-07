@@ -34,7 +34,7 @@ class Path
         $path = self::normalize($path);
         $parts = explode($this->separator, $path);
 
-        return array_values(array_filter($parts));
+        return array_values(array_filter($parts, fn(string $part) => $part !== ''));
     }
 
     /**
@@ -45,7 +45,7 @@ class Path
         $parts = [];
 
         foreach ($paths as $path) {
-            if (empty($path)) {
+            if ($path === null || $path === '') {
                 continue;
             }
 

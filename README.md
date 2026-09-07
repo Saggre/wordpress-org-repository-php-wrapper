@@ -206,6 +206,43 @@ $zip = $client->getZip('hello-dolly', '1.7.2');
 $stream = $client->getZipStream('hello-dolly');
 ```
 
+## API reference
+
+### `PluginClient` and `ThemeClient`
+
+Every method reads the slug and version held by the client's config. `getTagsDirectory()` is plugin only, since the
+theme repository has no `tags` directory.
+
+| Method                                                                            | Returns            | Description                                                              |
+|-----------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------|
+| `getFile(string $path)`                                                           | `string`           | Contents of a file.                                                      |
+| `getFileStream(string $path)`                                                     | `resource`         | Contents of a file as a stream.                                          |
+| `getDirectory(string $path = '', bool $deep = false)`                             | `DirectoryListing` | Directory contents, optionally including subdirectories.                 |
+| `getTagsDirectory()`                                                              | `DirectoryListing` | One entry per published version tag, with `lastModified` populated.      |
+| `export(string $destination)`                                                     | `int`              | Writes the tree to a local directory and returns the number of files.    |
+| `getLog(int $limit = 100, ?int $start = null, int $end = 0)`                       | `LogEntry[]`       | Commit log of this plugin or theme, newest revision first.               |
+| `getRepositoryLog(int $limit = 100, ?int $start = null, int $end = 0)`             | `LogEntry[]`       | Commit log of every plugin or theme at once.                             |
+| `getFilesystem()`                                                                 | `Filesystem`       | The underlying Flysystem instance, for anything the client does not do.  |
+
+### `PluginApiClient`
+
+| Method                                                    | Returns             | Description                                                      |
+|-----------------------------------------------------------|---------------------|------------------------------------------------------------------|
+| `queryPlugins(PluginQuery $query)`                        | `PluginQueryResult` | One page of the plugin directory.                                |
+| `getPluginInformation(string $slug, array $fields = [])`  | `PluginInfo`        | Full record of one plugin, including its versions map.           |
+| `getPluginStatus(string $slug)`                           | `PluginStatus`      | Whether a plugin is closed, and why.                             |
+
+### `PluginDownloadClient`
+
+| Method                                                | Returns    | Description                            |
+|-------------------------------------------------------|------------|----------------------------------------|
+| `getZipUrl(string $slug, ?string $version = null)`    | `string`   | Download URL of a release.             |
+| `getZip(string $slug, ?string $version = null)`       | `string`   | Contents of the release archive.       |
+| `getZipStream(string $slug, ?string $version = null)` | `resource` | Release archive as a stream.           |
+
+Repository reads throw `League\Flysystem\FilesystemException`. Everything else throws
+`Saggre\WordPress\Repository\Exception\ClientException`, whose code is the HTTP status of the failed response.
+
 ## Running tests
 
 ```bash

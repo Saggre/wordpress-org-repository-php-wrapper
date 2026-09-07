@@ -273,7 +273,11 @@ abstract class BaseClient
             throw new ClientException(sprintf('Unable to write the file "%s".', $path));
         }
 
-        stream_copy_to_stream($stream, $handle);
+        $copied = stream_copy_to_stream($stream, $handle);
         fclose($handle);
+
+        if ($copied === false) {
+            throw new ClientException(sprintf('Unable to write the file "%s".', $path));
+        }
     }
 }

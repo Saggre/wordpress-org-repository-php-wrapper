@@ -83,6 +83,10 @@ class LogReport
         $entries = [];
 
         foreach ($xpath->query('//S:log-item') as $item) {
+            if (!$item instanceof DOMElement) {
+                continue;
+            }
+
             $entries[] = new LogEntry(
                 (int) $this->getValue($xpath, $item, 'D:version-name'),
                 $this->getValue($xpath, $item, 'D:creator-displayname'),

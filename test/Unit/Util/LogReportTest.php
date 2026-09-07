@@ -81,7 +81,8 @@ class LogReportTest extends UnitTestCase
         <?xml version="1.0" encoding="utf-8"?>
         <S:log-report xmlns:S="svn:" xmlns:D="DAV:">
         <S:log-item>
-        <S:added-path node-kind="dir" copyfrom-path="/hello-dolly/trunk" copyfrom-rev="2995208">/hello-dolly/tags/1.7.3</S:added-path>
+        <S:added-path node-kind="dir" copyfrom-path="/hello-dolly/trunk"
+        copyfrom-rev="2995208">/hello-dolly/tags/1.7.3</S:added-path>
         <D:version-name>2995248</D:version-name>
         </S:log-item>
         </S:log-report>

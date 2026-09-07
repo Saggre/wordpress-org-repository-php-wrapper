@@ -23,3 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `RepositoryClientConfig`, which `PluginClientConfig` and `ThemeClientConfig` extend.
 - The `$path` argument of `BaseClient::getDirectory()` defaults to the plugin or theme root.
 - The minimum PHP version is now 8.1.
+- `composer run create-docs` now passes the markdown template and the title the committed `docs/` are generated with.
+
+### Fixed
+
+- `Util\Path` no longer drops path segments equal to `"0"`.

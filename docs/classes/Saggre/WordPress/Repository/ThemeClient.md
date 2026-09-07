@@ -165,14 +165,15 @@ On repository read error.
 Get the content of a plugin or theme directory.
 
 ```php
-public getDirectory(string $path): \League\Flysystem\DirectoryListing
+public getDirectory(string $path = '', bool $deep = false): \League\Flysystem\DirectoryListing
 ```
 
 **Parameters:**
 
-| Parameter | Type       | Description                                       |
-|-----------|------------|---------------------------------------------------|
-| `$path`   | **string** | Relative file path from the plugin or theme root. |
+| Parameter | Type       | Description                                             |
+|-----------|------------|---------------------------------------------------------|
+| `$path`   | **string** | Relative directory path from the plugin or theme root.  |
+| `$deep`   | **bool**   | Whether to list the contents of subdirectories as well. |
 
 **Return Value:**
 
@@ -184,5 +185,150 @@ On repository read error or if the path is not a directory.
 - [`UnableToListContents`](../../../League/Flysystem/UnableToListContents)
 On repository read error.
 - [`FilesystemException`](../../../League/Flysystem/FilesystemException)
+
+***
+
+### export
+
+Write the tree of the configured version to a local directory.
+
+```php
+public export(string $destination): int
+```
+
+The repository equivalent of an svn export, which retrieves builds that are no longer
+available on the distribution host.
+
+**Parameters:**
+
+| Parameter      | Type       | Description                                                |
+|----------------|------------|------------------------------------------------------------|
+| `$destination` | **string** | Local directory to write to. Created if it does not exist. |
+
+**Return Value:**
+
+The number of files written.
+
+**Throws:**
+
+When the destination cannot be written to.
+- [`ClientException`](./Exception/ClientException)
+On repository read error.
+- [`FilesystemException`](../../../League/Flysystem/FilesystemException)
+
+***
+
+### getLog
+
+Get the commit log of the configured plugin or theme, newest revision first.
+
+```php
+public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+```
+
+**Parameters:**
+
+| Parameter        | Type          | Description                                                |
+|------------------|---------------|------------------------------------------------------------|
+| `$limit`         | **int**       | Maximum number of revisions to return.                     |
+| `$startRevision` | **int\|null** | Revision to start from, defaults to the youngest revision. |
+| `$endRevision`   | **int**       | Revision to stop at.                                       |
+
+**Throws:**
+
+On repository read error.
+- [`ClientException`](./Exception/ClientException)
+
+***
+
+### getRepositoryLog
+
+Get the commit log of the whole repository, newest revision first.
+
+```php
+public getRepositoryLog(int $limit = 100, int|null $startRevision = null, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+```
+
+A single revision spans every plugin or theme changed by that commit.
+
+**Parameters:**
+
+| Parameter        | Type          | Description                                                |
+|------------------|---------------|------------------------------------------------------------|
+| `$limit`         | **int**       | Maximum number of revisions to return.                     |
+| `$startRevision` | **int\|null** | Revision to start from, defaults to the youngest revision. |
+| `$endRevision`   | **int**       | Revision to stop at.                                       |
+
+**Throws:**
+
+On repository read error.
+- [`ClientException`](./Exception/ClientException)
+
+***
+
+### getLogForPath
+
+Run an SVN log-report against a repository path.
+
+```php
+protected getLogForPath(string $path, int $limit, int|null $startRevision, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+```
+
+**Parameters:**
+
+| Parameter        | Type          | Description               |
+|------------------|---------------|---------------------------|
+| `$path`          | **string**    | Repository absolute path. |
+| `$limit`         | **int**       |                           |
+| `$startRevision` | **int\|null** |                           |
+| `$endRevision`   | **int**       |                           |
+
+**Throws:**
+
+On repository read error.
+- [`ClientException`](./Exception/ClientException)
+
+***
+
+### createDirectory
+
+Create a local directory.
+
+```php
+protected createDirectory(string $path): void
+```
+
+**Parameters:**
+
+| Parameter | Type       | Description |
+|-----------|------------|-------------|
+| `$path`   | **string** |             |
+
+**Throws:**
+
+When the directory cannot be created.
+- [`ClientException`](./Exception/ClientException)
+
+***
+
+### writeFile
+
+Write a stream to a local file.
+
+```php
+protected writeFile(string $path, resource $stream): void
+```
+
+**Parameters:**
+
+| Parameter | Type         | Description |
+|-----------|--------------|-------------|
+| `$path`   | **string**   |             |
+| `$stream` | **resource** |             |
+
+**Throws:**
+
+When the file cannot be written.
+- [`ClientException`](./Exception/ClientException)
 
 ***

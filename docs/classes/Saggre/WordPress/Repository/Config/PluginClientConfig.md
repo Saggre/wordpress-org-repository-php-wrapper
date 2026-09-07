@@ -4,7 +4,7 @@ Configuration class for the WordPress.org Plugin Client.
 ***
 
 * Full name: `\Saggre\WordPress\Repository\Config\PluginClientConfig`
-* Parent class: [`\Saggre\WordPress\Repository\Config\BaseClientConfig`](./BaseClientConfig)
+* Parent class: [`\Saggre\WordPress\Repository\Config\RepositoryClientConfig`](./RepositoryClientConfig)
 
 ## Properties
 
@@ -24,28 +24,12 @@ protected string $version
 
 ***
 
-### baseUrl
-
-```php
-protected string $baseUrl
-```
-
-***
-
-### userAgent
-
-```php
-protected string $userAgent
-```
-
-***
-
 ## Methods
 
 ### __construct
 
 ```php
-public __construct(string $slug, string $version = 'trunk', string $baseUrl = 'https://plugins.svn.wordpress.org', string $userAgent = 'wordpress-org-repository-php-wrapper/' . PluginClient::CLIENT_VERSION): mixed
+public __construct(string $slug, string $version = 'trunk', string $baseUrl = 'https://plugins.svn.wordpress.org', string $userAgent = 'wordpress-org-repository-php-wrapper/' . self::CLIENT_VERSION): mixed
 ```
 
 **Parameters:**
@@ -81,31 +65,16 @@ public __construct(string $slug, string $version, string $baseUrl, string $userA
 | `$baseUrl`   | **string** |             |
 | `$userAgent` | **string** |             |
 
-***
+**Throws:**
 
-### getSlug
-
-Get the slug of the plugin.
-
-```php
-public getSlug(): string
-```
-
-***
-
-### getVersion
-
-Get the version of the plugin.
-
-```php
-public getVersion(): string
-```
+On empty slug or version.
+- [`InvalidArgumentException`](../../../../InvalidArgumentException)
 
 ***
 
 ### getBaseUrl
 
-Get the base URL for the plugin repository.
+Get the base URL the client sends its requests to.
 
 ```php
 public getBaseUrl(): string
@@ -115,10 +84,30 @@ public getBaseUrl(): string
 
 ### getUserAgent
 
-Get the user agent string for the plugin client.
+Get the user agent string for the client.
 
 ```php
 public getUserAgent(): string
+```
+
+***
+
+### getSlug
+
+Get the slug of the plugin or theme.
+
+```php
+public getSlug(): string
+```
+
+***
+
+### getVersion
+
+Get the version of the plugin or theme.
+
+```php
+public getVersion(): string
 ```
 
 ***
