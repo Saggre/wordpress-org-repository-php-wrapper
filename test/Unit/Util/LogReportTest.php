@@ -2,6 +2,7 @@
 
 namespace Saggre\WordPress\Repository\Test\Unit\Util;
 
+use InvalidArgumentException;
 use Saggre\WordPress\Repository\Exception\ClientException;
 use Saggre\WordPress\Repository\Model\LogEntry;
 use Saggre\WordPress\Repository\Model\LogPathAction;
@@ -31,9 +32,62 @@ class LogReportTest extends UnitTestCase
 
     public function testCreateRequestBodyIsValidXml()
     {
-        $document = simplexml_load_string((new LogReport())->createRequestBody(1, 2, 3));
+        $document = simplexml_load_string((new LogReport())->createRequestBody(1, 3, 2));
 
         self::assertNotFalse($document);
+    }
+
+    public static function dataProviderTestCreateRequestBodyArguments(): iterable
+    {
+        return [
+            'no bounds' => [10, null, 0],
+            'start only' => [10, 3383710, 0],
+            'full range' => [0, 3383710, 3289318],
+        ];
+    }
+
+    /**
+     * The server answers 200 with an empty report when the end revision is missing, so every
+     * request has to carry one.
+     *
+     * @dataProvider dataProviderTestCreateRequestBodyArguments
+     */
+    public function testCreateRequestBodyAlwaysSendsAnEndRevision(int $limit, ?int $start, int $end)
+    {
+        $body = (new LogReport())->createRequestBody($limit, $start, $end);
+
+        self::assertStringContainsString('<S:end-revision>' . $end . '</S:end-revision>', $body);
+    }
+
+    public function testCreateRequestBodyRejectsANegativeEndRevision()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The end revision cannot be negative.');
+
+        (new LogReport())->createRequestBody(10, null, -1);
+    }
+
+    public function testCreateRequestBodyRejectsAnInvertedRange()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The start revision 100 is older than the end revision 200.');
+
+        (new LogReport())->createRequestBody(10, 100, 200);
+    }
+
+    public function testCreateRequestBodyScopesToAPath()
+    {
+        $body = (new LogReport())->createRequestBody(10, null, 0, 'trunk/admin');
+
+        self::assertStringContainsString('<S:path>trunk/admin</S:path>', $body);
+    }
+
+    public function testCreateRequestBodyEscapesThePath()
+    {
+        $body = (new LogReport())->createRequestBody(10, null, 0, 'trunk/a&b');
+
+        self::assertStringContainsString('<S:path>trunk/a&amp;b</S:path>', $body);
+        self::assertNotFalse(simplexml_load_string($body));
     }
 
     protected function getLogEntries(): array
@@ -73,6 +127,29 @@ class LogReportTest extends UnitTestCase
         self::assertSame('dir', $paths[1]->nodeKind);
         self::assertNull($paths[1]->copyFromPath);
         self::assertNull($paths[1]->copyFromRevision);
+    }
+
+    public function testParseResponseReadsTheModificationFlags()
+    {
+        $paths = $this->getLogEntries()[0]->paths;
+
+        self::assertTrue($paths[0]->textMods);
+        self::assertFalse($paths[0]->propMods);
+        self::assertFalse($paths[1]->textMods);
+    }
+
+    public function testParseResponseDefaultsMissingModificationFlagsToFalse()
+    {
+        $body = '<?xml version="1.0" encoding="utf-8"?>' . "
+"
+            . '<S:log-report xmlns:S="svn:" xmlns:D="DAV:"><S:log-item>'
+            . '<S:deleted-path node-kind="file">/hello-dolly/trunk/gone.txt</S:deleted-path>'
+            . '<D:version-name>1</D:version-name></S:log-item></S:log-report>';
+
+        $path = (new LogReport())->parseResponse($body)[0]->paths[0];
+
+        self::assertFalse($path->textMods);
+        self::assertFalse($path->propMods);
     }
 
     public function testParseResponseReadsCopiedPaths()

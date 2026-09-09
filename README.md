@@ -124,6 +124,49 @@ foreach ($log as $entry) {
 }
 ```
 
+#### Compare two published versions
+
+`diffVersions()` lists the files a release touched without downloading either tree. It resolves both tags, then reads
+the revision range between them in a single request. Paths come back relative to the plugin root, deduplicated across
+trunk and the new tag, which vendors commonly commit the same edit to.
+
+```php
+$paths = $client->diffVersions('4.4.3', '4.4.4');
+
+foreach ($paths as $path) {
+    // A path with textMods false changed only its properties, its bytes are identical.
+    echo "[{$path->action->value}] {$path->path}\n";
+}
+
+// Fetch only what changed, then diff locally.
+$before = (new PluginClient(new PluginClientConfig('gdpr-cookie-consent', '4.4.3')))->getFile('gdpr-cookie-consent.php');
+```
+
+A version that was published without ever being tagged throws `TagNotFoundException` rather than silently comparing
+the wrong pair.
+
+#### Map versions to revisions
+
+```php
+$tags = $client->getTagRevisions();
+
+// Ordered by revision, oldest release first. Version strings cannot be sorted as text,
+// where '1.10.4' lands between '1.1.9' and '1.2.0'.
+foreach ($tags as $version => $entry) {
+    // A tag is a directory copy, so it also names the trunk revision the release was cut from.
+    echo "{$version} => r{$entry->revision} from {$entry->paths[0]->copyFromRevision}\n";
+}
+```
+
+#### Read a revision range
+
+`getChangedPaths()` reads the revisions between two bounds, optionally scoped to a subtree. Both bounds are inclusive,
+and both are required: the server answers an empty report with HTTP 200 when the end revision is missing.
+
+```php
+$log = $client->getChangedPaths(3686273, 3679496, 'trunk/admin');
+```
+
 #### Export a tagged version
 
 Writes the whole tree of the configured version to a local directory, which recovers releases that are no longer
@@ -210,8 +253,8 @@ $stream = $client->getZipStream('hello-dolly');
 
 ### `PluginClient` and `ThemeClient`
 
-Every method reads the slug and version held by the client's config. `getTagsDirectory()` is plugin only, since the
-theme repository has no `tags` directory.
+Every method reads the slug and version held by the client's config. `getTagsDirectory()`, `getTagRevisions()` and
+`diffVersions()` are plugin only, since the theme repository has no `tags` directory.
 
 | Method                                                                            | Returns            | Description                                                              |
 |-----------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------|
@@ -222,6 +265,9 @@ theme repository has no `tags` directory.
 | `export(string $destination)`                                                     | `int`              | Writes the tree to a local directory and returns the number of files.    |
 | `getLog(int $limit = 100, ?int $start = null, int $end = 0)`                       | `LogEntry[]`       | Commit log of this plugin or theme, newest revision first.               |
 | `getRepositoryLog(int $limit = 100, ?int $start = null, int $end = 0)`             | `LogEntry[]`       | Commit log of every plugin or theme at once.                             |
+| `getChangedPaths(int $start, int $end, string $path = '', int $limit = 0)`        | `LogEntry[]`       | Revisions in an inclusive range, optionally scoped to a subtree.         |
+| `getTagRevisions()`                                                               | `LogEntry[]`       | Every published version to the revision that created its tag.           |
+| `diffVersions(string $old, string $new)`                                          | `LogPath[]`        | Files changed between two published versions, keyed by path.            |
 | `getFilesystem()`                                                                 | `Filesystem`       | The underlying Flysystem instance, for anything the client does not do.  |
 
 ### `PluginApiClient`
@@ -242,6 +288,7 @@ theme repository has no `tags` directory.
 
 Repository reads throw `League\Flysystem\FilesystemException`. Everything else throws
 `Saggre\WordPress\Repository\Exception\ClientException`, whose code is the HTTP status of the failed response.
+`TagNotFoundException` extends it and is thrown when a version has no tag.
 
 ## Running tests
 
