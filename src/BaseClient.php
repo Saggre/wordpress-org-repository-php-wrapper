@@ -2,6 +2,7 @@
 
 namespace Saggre\WordPress\Repository;
 
+use InvalidArgumentException;
 use League\Flysystem\DirectoryListing;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemException;
@@ -41,6 +42,9 @@ abstract class BaseClient
     {
         $client = new Client(['baseUri' => $this->config->getBaseUrl()]);
         $client->addCurlSetting(CURLOPT_USERAGENT, $this->config->getUserAgent());
+
+        // Commit logs are large XML documents that compress by more than an order of magnitude.
+        $client->addCurlSetting(CURLOPT_ENCODING, '');
 
         return $client;
     }
@@ -84,6 +88,16 @@ abstract class BaseClient
             $this->config->getVersion(),
             $path
         );
+    }
+
+    /**
+     * Get the repository absolute path of the plugin or theme root, e.g. '/hello-dolly'.
+     *
+     * @return string
+     */
+    protected function getRootPath(): string
+    {
+        return (new Path('/'))->join('/', $this->config->getSlug());
     }
 
     /**
@@ -181,15 +195,11 @@ abstract class BaseClient
      * @param int $endRevision Revision to stop at.
      * @return LogEntry[]
      * @throws ClientException On repository read error.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
     public function getLog(int $limit = 100, ?int $startRevision = null, int $endRevision = 0): array
     {
-        return $this->getLogForPath(
-            (new Path('/'))->join('/', $this->config->getSlug()),
-            $limit,
-            $startRevision,
-            $endRevision
-        );
+        return $this->getLogForPath($this->getRootPath(), $limit, $startRevision, $endRevision);
     }
 
     /**
@@ -202,6 +212,7 @@ abstract class BaseClient
      * @param int $endRevision Revision to stop at.
      * @return LogEntry[]
      * @throws ClientException On repository read error.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
     public function getRepositoryLog(int $limit = 100, ?int $startRevision = null, int $endRevision = 0): array
     {
@@ -209,29 +220,59 @@ abstract class BaseClient
     }
 
     /**
+     * Get the revisions that changed a path of the configured plugin or theme, newest first.
+     *
+     * The range is inclusive at both ends, as in getLog(). Scoping to a path selects the
+     * revisions; each of them still reports every path it touched, including paths outside the
+     * scope, so a revision that changed both trunk and a tag lists both.
+     *
+     * @param int $startRevision Newer bound of the range.
+     * @param int $endRevision Older bound of the range.
+     * @param string $path Path relative to the plugin or theme root, e.g. 'tags' or 'trunk/admin'.
+     * @param int $limit Maximum number of revisions to return. 0 for no limit.
+     * @return LogEntry[]
+     * @throws ClientException On repository read error.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
+     */
+    public function getChangedPaths(int $startRevision, int $endRevision, string $path = '', int $limit = 0): array
+    {
+        return $this->getLogForPath($this->getRootPath(), $limit, $startRevision, $endRevision, $path);
+    }
+
+    /**
      * Run an SVN log-report against a repository path.
      *
-     * @param string $path Repository absolute path.
+     * The server only answers a REPORT at the repository root or at a plugin or theme root, so
+     * narrower scopes go into the request body rather than into the target.
+     *
+     * @param string $target Repository absolute path to send the report to.
      * @param int $limit
      * @param int|null $startRevision
      * @param int $endRevision
+     * @param string $path Path relative to the target, to restrict the revisions to.
      * @return LogEntry[]
      * @throws ClientException On repository read error.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
-    protected function getLogForPath(string $path, int $limit, ?int $startRevision, int $endRevision): array
-    {
+    protected function getLogForPath(
+        string $target,
+        int $limit,
+        ?int $startRevision,
+        int $endRevision,
+        string $path = ''
+    ): array {
         $report = new LogReport();
 
         $response = $this->client->request(
             'REPORT',
-            $path,
-            $report->createRequestBody($limit, $startRevision, $endRevision),
+            $target,
+            $report->createRequestBody($limit, $startRevision, $endRevision, $path),
             ['Content-Type' => 'text/xml']
         );
 
         if ($response['statusCode'] >= 400) {
             throw new ClientException(
-                sprintf('Unable to read the commit log of "%s".', $path),
+                sprintf('Unable to read the commit log of "%s".', $target),
                 $response['statusCode']
             );
         }

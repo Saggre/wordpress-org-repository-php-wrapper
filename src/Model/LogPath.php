@@ -13,6 +13,8 @@ class LogPath
      * @param string|null $nodeKind 'file' or 'dir'.
      * @param string|null $copyFromPath Source path when the node was copied, e.g. the trunk a tag was cut from.
      * @param int|null $copyFromRevision Source revision when the node was copied.
+     * @param bool $textMods Whether the content changed. False means only properties did.
+     * @param bool $propMods Whether the properties changed.
      */
     public function __construct(
         public readonly string $path,
@@ -20,6 +22,8 @@ class LogPath
         public readonly ?string $nodeKind = null,
         public readonly ?string $copyFromPath = null,
         public readonly ?int $copyFromRevision = null,
+        public readonly bool $textMods = false,
+        public readonly bool $propMods = false,
     ) {
     }
 }

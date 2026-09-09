@@ -47,12 +47,28 @@ public ?int $copyFromRevision
 
 ***
 
+### textMods
+
+```php
+public bool $textMods
+```
+
+***
+
+### propMods
+
+```php
+public bool $propMods
+```
+
+***
+
 ## Methods
 
 ### __construct
 
 ```php
-public __construct(string $path, \Saggre\WordPress\Repository\Model\LogPathAction $action, string|null $nodeKind = null, string|null $copyFromPath = null, int|null $copyFromRevision = null): mixed
+public __construct(string $path, \Saggre\WordPress\Repository\Model\LogPathAction $action, string|null $nodeKind = null, string|null $copyFromPath = null, int|null $copyFromRevision = null, bool $textMods = false, bool $propMods = false): mixed
 ```
 
 **Parameters:**
@@ -64,5 +80,7 @@ public __construct(string $path, \Saggre\WordPress\Repository\Model\LogPathActio
 | `$nodeKind`         | **string\|null**                                     | 'file' or 'dir'.                                                         |
 | `$copyFromPath`     | **string\|null**                                     | Source path when the node was copied, e.g. the trunk a tag was cut from. |
 | `$copyFromRevision` | **int\|null**                                        | Source revision when the node was copied.                                |
+| `$textMods`         | **bool**                                             | Whether the content changed. False means only properties did.            |
+| `$propMods`         | **bool**                                             | Whether the properties changed.                                          |
 
 ***

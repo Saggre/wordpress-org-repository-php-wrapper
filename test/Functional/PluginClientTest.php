@@ -7,6 +7,7 @@ use League\Flysystem\FilesystemException;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToListContents;
 use Saggre\WordPress\Repository\Config\PluginClientConfig;
+use Saggre\WordPress\Repository\Exception\TagNotFoundException;
 use Saggre\WordPress\Repository\Model\LogEntry;
 use Saggre\WordPress\Repository\Model\LogPath;
 use Saggre\WordPress\Repository\Model\LogPathAction;
@@ -216,5 +217,77 @@ class PluginClientTest extends FunctionalTestCase
         foreach ($log as $entry) {
             self::assertNotEmpty($entry->paths);
         }
+    }
+
+    public function testGetChangedPathsScopesToASubtree()
+    {
+        $client = new PluginClient(new PluginClientConfig('hello-dolly'));
+        $log = $client->getChangedPaths(2995248, 2995248, 'tags');
+
+        self::assertCount(1, $log);
+        self::assertSame('/hello-dolly/tags/1.7.3', $log[0]->paths[0]->path);
+    }
+
+    public function testGetTagRevisionsResolvesPublishedVersions()
+    {
+        $client = new PluginClient(new PluginClientConfig('gdpr-cookie-consent'));
+        $tags = $client->getTagRevisions();
+
+        self::assertSame(3679495, $tags['4.4.3']->revision);
+        self::assertSame(3686273, $tags['4.4.4']->revision);
+
+        // A tag is a directory copy, so it also names the trunk revision the release was cut from.
+        $copies = array_filter(
+            $tags['4.4.4']->paths,
+            fn(LogPath $path) => $path->path === '/gdpr-cookie-consent/tags/4.4.4'
+        );
+        $copy = reset($copies);
+
+        self::assertSame(LogPathAction::Added, $copy->action);
+        self::assertSame('dir', $copy->nodeKind);
+        self::assertSame('/gdpr-cookie-consent/trunk', $copy->copyFromPath);
+        self::assertSame(3686084, $copy->copyFromRevision);
+    }
+
+    public function testGetTagRevisionsOrdersAVersionSeriesByRevision()
+    {
+        $client = new PluginClient(new PluginClientConfig('wp-super-cache'));
+        $versions = array_keys($client->getTagRevisions());
+
+        $early = array_search('1.1.1', $versions, true);
+        $nine = array_search('1.9.4', $versions, true);
+        $ten = array_search('1.10.0', $versions, true);
+
+        self::assertGreaterThan($nine, $ten, 'Releases are sorted as text, where 1.10.0 precedes 1.9.4.');
+        self::assertGreaterThan($early, $nine);
+    }
+
+    public function testDiffVersionsFindsTheChangedFiles()
+    {
+        $client = new PluginClient(new PluginClientConfig('gdpr-cookie-consent'));
+        $paths = $client->diffVersions('4.4.3', '4.4.4');
+        $php = array_filter(array_keys($paths), fn(string $path) => str_ends_with($path, '.php'));
+
+        // Matches a byte comparison of the two extracted trees.
+        self::assertCount(11, $php);
+        self::assertContains('gdpr-cookie-consent.php', $php);
+        self::assertContains('admin/views/wizard.php', $php);
+
+        foreach ($paths as $key => $path) {
+            self::assertSame($key, $path->path, 'Paths are keyed by something other than themselves.');
+            self::assertSame('file', $path->nodeKind, 'The tag copy is reported as a change.');
+            self::assertStringStartsNotWith('/', $path->path, 'The repository prefix was not stripped.');
+            self::assertStringNotContainsString('tags/4.4.4', $path->path);
+        }
+    }
+
+    public function testDiffVersionsThrowsOnAnUntaggedVersion()
+    {
+        $client = new PluginClient(new PluginClientConfig('gdpr-cookie-consent'));
+
+        $this->expectException(TagNotFoundException::class);
+        $this->expectExceptionMessage('Version "99.99.99" of "gdpr-cookie-consent" has no tag in the repository.');
+
+        $client->diffVersions('4.4.3', '99.99.99');
     }
 }

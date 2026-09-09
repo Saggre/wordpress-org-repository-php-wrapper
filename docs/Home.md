@@ -32,9 +32,10 @@ This is an automatically generated documentation for **Wordpress.org Repository 
 
 #### Classes
 
-| Class                                                                                | Description                                                  |
-|--------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| [`ClientException`](./classes/Saggre/WordPress/Repository/Exception/ClientException) | Thrown when a WordPress.org endpoint responds with an error. |
+| Class                                                                                          | Description                                                  |
+|------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| [`ClientException`](./classes/Saggre/WordPress/Repository/Exception/ClientException)           | Thrown when a WordPress.org endpoint responds with an error. |
+| [`TagNotFoundException`](./classes/Saggre/WordPress/Repository/Exception/TagNotFoundException) | Thrown when a version has no tag in the repository.          |
 
 ### \Saggre\WordPress\Repository\Model
 

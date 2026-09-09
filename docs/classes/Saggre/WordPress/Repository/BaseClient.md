@@ -92,6 +92,16 @@ protected getPath(string $path): string
 
 ***
 
+### getRootPath
+
+Get the repository absolute path of the plugin or theme root, e.g. '/hello-dolly'.
+
+```php
+protected getRootPath(): string
+```
+
+***
+
 ### getFile
 
 Get the content of a plugin or theme file.
@@ -205,7 +215,7 @@ On repository read error.
 Get the commit log of the configured plugin or theme, newest revision first.
 
 ```php
-public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision = 0): \Saggre\WordPress\Repository\Model\LogEntry[]
 ```
 
 **Parameters:**
@@ -220,6 +230,8 @@ public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 
@@ -228,7 +240,7 @@ On repository read error.
 Get the commit log of the whole repository, newest revision first.
 
 ```php
-public getRepositoryLog(int $limit = 100, int|null $startRevision = null, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+public getRepositoryLog(int $limit = 100, int|null $startRevision = null, int $endRevision = 0): \Saggre\WordPress\Repository\Model\LogEntry[]
 ```
 
 A single revision spans every plugin or theme changed by that commit.
@@ -245,6 +257,38 @@ A single revision spans every plugin or theme changed by that commit.
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
+
+***
+
+### getChangedPaths
+
+Get the revisions that changed a path of the configured plugin or theme, newest first.
+
+```php
+public getChangedPaths(int $startRevision, int $endRevision, string $path = '', int $limit = 0): \Saggre\WordPress\Repository\Model\LogEntry[]
+```
+
+The range is inclusive at both ends, as in getLog(). Scoping to a path selects the
+revisions; each of them still reports every path it touched, including paths outside the
+scope, so a revision that changed both trunk and a tag lists both.
+
+**Parameters:**
+
+| Parameter        | Type       | Description                                                              |
+|------------------|------------|--------------------------------------------------------------------------|
+| `$startRevision` | **int**    | Newer bound of the range.                                                |
+| `$endRevision`   | **int**    | Older bound of the range.                                                |
+| `$path`          | **string** | Path relative to the plugin or theme root, e.g. 'tags' or 'trunk/admin'. |
+| `$limit`         | **int**    | Maximum number of revisions to return. 0 for no limit.                   |
+
+**Throws:**
+
+On repository read error.
+- [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 
@@ -253,22 +297,28 @@ On repository read error.
 Run an SVN log-report against a repository path.
 
 ```php
-protected getLogForPath(string $path, int $limit, int|null $startRevision, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+protected getLogForPath(string $target, int $limit, int|null $startRevision, int $endRevision, string $path = ''): \Saggre\WordPress\Repository\Model\LogEntry[]
 ```
+
+The server only answers a REPORT at the repository root or at a plugin or theme root, so
+narrower scopes go into the request body rather than into the target.
 
 **Parameters:**
 
-| Parameter        | Type          | Description               |
-|------------------|---------------|---------------------------|
-| `$path`          | **string**    | Repository absolute path. |
-| `$limit`         | **int**       |                           |
-| `$startRevision` | **int\|null** |                           |
-| `$endRevision`   | **int**       |                           |
+| Parameter        | Type          | Description                                                |
+|------------------|---------------|------------------------------------------------------------|
+| `$target`        | **string**    | Repository absolute path to send the report to.            |
+| `$limit`         | **int**       |                                                            |
+| `$startRevision` | **int\|null** |                                                            |
+| `$endRevision`   | **int**       |                                                            |
+| `$path`          | **string**    | Path relative to the target, to restrict the revisions to. |
 
 **Throws:**
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 
