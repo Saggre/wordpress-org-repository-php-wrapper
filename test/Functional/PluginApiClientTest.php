@@ -31,11 +31,17 @@ class PluginApiClientTest extends FunctionalTestCase
         self::assertCount(3, $result->plugins);
         self::assertContainsOnlyInstancesOf(PluginInfo::class, $result->plugins);
 
-        $timestamps = array_map(fn(PluginInfo $plugin) => $plugin->lastUpdated->getTimestamp(), $result->plugins);
-        $sorted = $timestamps;
-        rsort($sorted);
+        $timestamps = [];
 
-        self::assertSame($sorted, $timestamps, 'Plugins are not ordered by last update, newest first.');
+        foreach ($result->plugins as $plugin) {
+            self::assertNotNull($plugin->lastUpdated, "{$plugin->slug} has no parsed last update.");
+            $timestamps[] = $plugin->lastUpdated->getTimestamp();
+        }
+
+        // The head of this list is eventually consistent, so entries settle into place over the
+        // following minutes and their order is not asserted. The newest entry still dates the page
+        // and separates this browse mode from the others, whose newest release is days old.
+        self::assertGreaterThan(time() - 86400, max($timestamps), 'The page is not of recent updates.');
     }
 
     public function testQueryPluginsTrimsAndEnrichesThePayload()
