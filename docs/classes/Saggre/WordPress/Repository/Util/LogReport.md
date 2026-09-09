@@ -20,16 +20,25 @@ Encodes and decodes the SVN log-report protocol used by the REPORT method.
 Build the request body of a log-report.
 
 ```php
-public createRequestBody(int $limit, int|null $startRevision = null, int $endRevision): string
+public createRequestBody(int $limit, int|null $startRevision = null, int $endRevision = 0, string $path = ''): string
 ```
+
+The end revision is always sent. Without it the server answers 200 with an empty report,
+which reads as a plugin with no history rather than as the malformed request it is.
 
 **Parameters:**
 
-| Parameter        | Type          | Description                                                |
-|------------------|---------------|------------------------------------------------------------|
-| `$limit`         | **int**       | Maximum number of revisions to return, newest first.       |
-| `$startRevision` | **int\|null** | Revision to start from, defaults to the youngest revision. |
-| `$endRevision`   | **int**       | Revision to stop at.                                       |
+| Parameter        | Type          | Description                                                          |
+|------------------|---------------|----------------------------------------------------------------------|
+| `$limit`         | **int**       | Maximum number of revisions to return, newest first. 0 for no limit. |
+| `$startRevision` | **int\|null** | Revision to start from, defaults to the youngest revision.           |
+| `$endRevision`   | **int**       | Revision to stop at.                                                 |
+| `$path`          | **string**    | Path relative to the report target, to restrict the revisions to.    |
+
+**Throws:**
+
+On a revision range the server cannot answer.
+- [`InvalidArgumentException`](../../../../InvalidArgumentException)
 
 ***
 

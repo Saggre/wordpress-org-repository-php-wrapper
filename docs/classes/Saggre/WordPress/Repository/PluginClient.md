@@ -50,6 +50,105 @@ On repository read error.
 
 ***
 
+### getTagRevisions
+
+Map every published version to the revision that created its tag.
+
+```php
+public getTagRevisions(): array<string,\Saggre\WordPress\Repository\Model\LogEntry>
+```
+
+Reads the whole tag history in one request, so the cost grows with the number of releases.
+A tag is a directory copy, so the entry also carries the trunk revision the release was cut
+from, in the copyFromRevision of its path.
+
+Ordered by revision, oldest release first. Version strings cannot be sorted as text, where
+'1.10.4' lands between '1.1.9' and '1.2.0', but revision numbers are monotonic.
+
+**Return Value:**
+
+Version string to the revision that added its tag.
+
+**Throws:**
+
+On repository read error.
+- [`ClientException`](./Exception/ClientException)
+
+***
+
+### diffVersions
+
+Get the files that changed between two published versions.
+
+```php
+public diffVersions(string $old, string $new): array<string,\Saggre\WordPress\Repository\Model\LogPath>
+```
+
+Resolves both tags, then reads the revision range between them in a single request, which
+is the cheap alternative to downloading and comparing two complete trees.
+
+Vendors commonly commit the same edit to trunk and to the new tag, so both trees are read
+and deduplicated. The tag directory itself is a copy rather than a file change and is left
+out, as is anything committed to an unrelated tag in the same range.
+
+**Parameters:**
+
+| Parameter | Type       | Description                      |
+|-----------|------------|----------------------------------|
+| `$old`    | **string** | The older version, e.g. '4.4.3'. |
+| `$new`    | **string** | The newer version, e.g. '4.4.4'. |
+
+**Return Value:**
+
+Changed files, keyed by their path relative to the plugin root.
+
+**Throws:**
+
+When either version has no tag.
+- [`TagNotFoundException`](./Exception/TagNotFoundException)
+On repository read error.
+- [`ClientException`](./Exception/ClientException)
+
+***
+
+### normalizePaths
+
+Reduce the paths of a revision range to one entry per file of the plugin tree.
+
+```php
+protected normalizePaths(\Saggre\WordPress\Repository\Model\LogEntry[] $log, string $version): array<string,\Saggre\WordPress\Repository\Model\LogPath>
+```
+
+**Parameters:**
+
+| Parameter  | Type                                              | Description                           |
+|------------|---------------------------------------------------|---------------------------------------|
+| `$log`     | **\Saggre\WordPress\Repository\Model\LogEntry[]** |                                       |
+| `$version` | **string**                                        | The tagged version the range ends at. |
+
+***
+
+### stripPrefix
+
+Strip the trunk or tag prefix from a repository absolute path.
+
+```php
+protected stripPrefix(string $path, string[] $prefixes): string|null
+```
+
+**Parameters:**
+
+| Parameter   | Type         | Description |
+|-------------|--------------|-------------|
+| `$path`     | **string**   |             |
+| `$prefixes` | **string[]** |             |
+
+**Return Value:**
+
+Null when the path lies outside every given tree.
+
+***
+
 ## Inherited methods
 
 ### __construct
@@ -225,7 +324,7 @@ On repository read error.
 Get the commit log of the configured plugin or theme, newest revision first.
 
 ```php
-public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision = 0): \Saggre\WordPress\Repository\Model\LogEntry[]
 ```
 
 **Parameters:**
@@ -248,7 +347,7 @@ On repository read error.
 Get the commit log of the whole repository, newest revision first.
 
 ```php
-public getRepositoryLog(int $limit = 100, int|null $startRevision = null, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+public getRepositoryLog(int $limit = 100, int|null $startRevision = null, int $endRevision = 0): \Saggre\WordPress\Repository\Model\LogEntry[]
 ```
 
 A single revision spans every plugin or theme changed by that commit.
@@ -268,22 +367,56 @@ On repository read error.
 
 ***
 
+### getChangedPaths
+
+Get the revisions that changed a path of the configured plugin or theme, newest first.
+
+```php
+public getChangedPaths(int $startRevision, int $endRevision, string $path = '', int $limit = 0): \Saggre\WordPress\Repository\Model\LogEntry[]
+```
+
+The range is inclusive at both ends, as in getLog(). Scoping to a path selects the
+revisions; each of them still reports every path it touched, including paths outside the
+scope, so a revision that changed both trunk and a tag lists both.
+
+**Parameters:**
+
+| Parameter        | Type       | Description                                                              |
+|------------------|------------|--------------------------------------------------------------------------|
+| `$startRevision` | **int**    | Newer bound of the range.                                                |
+| `$endRevision`   | **int**    | Older bound of the range.                                                |
+| `$path`          | **string** | Path relative to the plugin or theme root, e.g. 'tags' or 'trunk/admin'. |
+| `$limit`         | **int**    | Maximum number of revisions to return. 0 for no limit.                   |
+
+**Throws:**
+
+On repository read error.
+- [`ClientException`](./Exception/ClientException)
+When the start revision is older than the end revision.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
+
+***
+
 ### getLogForPath
 
 Run an SVN log-report against a repository path.
 
 ```php
-protected getLogForPath(string $path, int $limit, int|null $startRevision, int $endRevision): \Saggre\WordPress\Repository\Model\LogEntry[]
+protected getLogForPath(string $target, int $limit, int|null $startRevision, int $endRevision, string $path = ''): \Saggre\WordPress\Repository\Model\LogEntry[]
 ```
+
+The server only answers a REPORT at the repository root or at a plugin or theme root, so
+narrower scopes go into the request body rather than into the target.
 
 **Parameters:**
 
-| Parameter        | Type          | Description               |
-|------------------|---------------|---------------------------|
-| `$path`          | **string**    | Repository absolute path. |
-| `$limit`         | **int**       |                           |
-| `$startRevision` | **int\|null** |                           |
-| `$endRevision`   | **int**       |                           |
+| Parameter        | Type          | Description                                                |
+|------------------|---------------|------------------------------------------------------------|
+| `$target`        | **string**    | Repository absolute path to send the report to.            |
+| `$limit`         | **int**       |                                                            |
+| `$startRevision` | **int\|null** |                                                            |
+| `$endRevision`   | **int**       |                                                            |
+| `$path`          | **string**    | Path relative to the target, to restrict the revisions to. |
 
 **Throws:**
 
