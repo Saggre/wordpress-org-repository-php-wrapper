@@ -43,23 +43,28 @@ class PluginClient extends BaseClient
     /**
      * Map every published version to the revision that created its tag.
      *
-     * Reads the whole tag history in one request, so the cost grows with the number of releases.
-     * A tag is a directory copy, so the entry also carries the trunk revision the release was cut
-     * from, in the copyFromRevision of its path.
+     * Reads the tag history in one request, so without a limit the cost grows with the number of
+     * releases. A caller that only needs the newest releases can cap the revisions read, which is
+     * the whole cost of a diff for a plugin with a long history. A tag is a directory copy, so the
+     * entry also carries the trunk revision the release was cut from, in the copyFromRevision of
+     * its path.
      *
      * Ordered by revision, oldest release first. Version strings cannot be sorted as text, where
      * '1.10.4' lands between '1.1.9' and '1.2.0', but revision numbers are monotonic.
      *
+     * @param int $limit Maximum number of tag revisions to read, newest first. 0 for no limit. A
+     *                   release usually takes one revision, but retagging a release and editing a
+     *                   file inside a tag take their own, so the window can hold fewer versions.
      * @return array<string, LogEntry> Version string to the revision that added its tag.
      * @throws ClientException On repository read error.
      */
-    public function getTagRevisions(): array
+    public function getTagRevisions(int $limit = 0): array
     {
         $tagsPath = $this->getRootPath() . '/tags';
         $revisions = [];
         $deleted = [];
 
-        $log = $this->getLogForPath($this->getRootPath(), 0, null, 0, 'tags');
+        $log = $this->getLogForPath($this->getRootPath(), $limit, null, 0, 'tags');
 
         foreach ($log as $entry) {
             foreach ($entry->paths as $path) {
@@ -103,23 +108,32 @@ class PluginClient extends BaseClient
      * directory is listed in place of the files it removed or brought along, since the log does
      * not name them.
      *
+     * Resolving the tags is the expensive half for a plugin with a long history, since it reads
+     * the whole tag log to find two revisions. A caller diffing consecutive releases can cap that
+     * read with $limit, at the price of a TagNotFoundException for a version tagged before the
+     * window.
+     *
      * @param string $old The older version, e.g. '4.4.3'.
      * @param string $new The newer version, e.g. '4.4.4'.
+     * @param int $limit Maximum number of tag revisions to read, newest first. 0 for no limit.
      * @return array<string, LogPath> Changed paths, keyed by their path relative to the plugin root.
-     * @throws TagNotFoundException When either version has no tag.
+     * @throws TagNotFoundException When either version has no tag in the revisions read.
      * @throws InvalidArgumentException When the old version was not tagged before the new one.
      * @throws ClientException On repository read error.
      */
-    public function diffVersions(string $old, string $new): array
+    public function diffVersions(string $old, string $new, int $limit = 0): array
     {
-        $tags = $this->getTagRevisions();
+        $tags = $this->getTagRevisions($limit);
 
         foreach ([$old, $new] as $version) {
             if (!isset($tags[$version])) {
                 throw new TagNotFoundException(sprintf(
-                    'Version "%s" of "%s" has no tag in the repository.',
+                    'Version "%s" of "%s" has no tag in %s.',
                     $version,
-                    $this->config->getSlug()
+                    $this->config->getSlug(),
+                    $limit > 0
+                        ? sprintf('the newest %d revisions of its tags', $limit)
+                        : 'the repository'
                 ));
             }
         }

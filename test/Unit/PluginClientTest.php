@@ -128,6 +128,15 @@ class PluginClientTest extends UnitTestCase
         self::assertSame('/demo-plugin/trunk', $tag->paths[0]->copyFromPath);
     }
 
+    public function testGetTagRevisionsCapsTheHistoryItReads()
+    {
+        $dav = (new DavClientStub())->willRespondWith($this->getFixture('tag_revisions.xml'));
+
+        $this->createPluginClient($dav)->getTagRevisions(5);
+
+        self::assertStringContainsString('<S:limit>5</S:limit>', $dav->requests[0]->getBodyAsString());
+    }
+
     public function testDiffVersionsReadsTheRangeBetweenTwoTags()
     {
         [$client, $dav] = $this->createDiffClient();
@@ -202,5 +211,19 @@ class PluginClientTest extends UnitTestCase
         $this->expectExceptionMessage('Version "1.9.1" of "demo-plugin" has no tag in the repository.');
 
         $client->diffVersions('1.9.1', '1.10.4');
+    }
+
+    public function testDiffVersionsReportsAVersionTaggedBeforeItsLimit()
+    {
+        [$client, $dav] = $this->createDiffClient();
+
+        $this->expectException(TagNotFoundException::class);
+        $this->expectExceptionMessage('Version "1.9.1" of "demo-plugin" has no tag in the newest 2 revisions of its tags.');
+
+        try {
+            $client->diffVersions('1.9.1', '1.10.4', 2);
+        } finally {
+            self::assertStringContainsString('<S:limit>2</S:limit>', $dav->requests[0]->getBodyAsString());
+        }
     }
 }
