@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- `PluginClient::getTagRevisions()` and `PluginClient::diffVersions()` take a limit on the number of tag revisions to
+  read. Resolving a tag used to read the whole tag history, which for a plugin with hundreds of releases is nearly the
+  entire cost of a diff.
+
 ## [1.2.0] - 2026-09-09
 
 ### Added

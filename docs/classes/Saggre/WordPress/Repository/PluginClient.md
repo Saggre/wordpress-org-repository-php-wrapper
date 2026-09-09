@@ -55,15 +55,23 @@ On repository read error.
 Map every published version to the revision that created its tag.
 
 ```php
-public getTagRevisions(): array<string,\Saggre\WordPress\Repository\Model\LogEntry>
+public getTagRevisions(int $limit = 0): array<string,\Saggre\WordPress\Repository\Model\LogEntry>
 ```
 
-Reads the whole tag history in one request, so the cost grows with the number of releases.
-A tag is a directory copy, so the entry also carries the trunk revision the release was cut
-from, in the copyFromRevision of its path.
+Reads the tag history in one request, so without a limit the cost grows with the number of
+releases. A caller that only needs the newest releases can cap the revisions read, which is
+the whole cost of a diff for a plugin with a long history. A tag is a directory copy, so the
+entry also carries the trunk revision the release was cut from, in the copyFromRevision of
+its path.
 
 Ordered by revision, oldest release first. Version strings cannot be sorted as text, where
 '1.10.4' lands between '1.1.9' and '1.2.0', but revision numbers are monotonic.
+
+**Parameters:**
+
+| Parameter | Type    | Description                                                                                                                                                                                        |
+|-----------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `$limit`  | **int** | Maximum number of tag revisions to read, newest first. 0 for no limit. A release usually takes one revision, but retagging a release and editing a file inside a tag take their own, so the window can hold fewer versions. |
 
 **Return Value:**
 
@@ -81,7 +89,7 @@ On repository read error.
 Get the files that changed between two published versions.
 
 ```php
-public diffVersions(string $old, string $new): array<string,\Saggre\WordPress\Repository\Model\LogPath>
+public diffVersions(string $old, string $new, int $limit = 0): array<string,\Saggre\WordPress\Repository\Model\LogPath>
 ```
 
 Resolves both tags, then reads the revision range between them in a single request, which
@@ -93,12 +101,18 @@ out, as is anything committed to an unrelated tag in the same range. A deleted o
 directory is listed in place of the files it removed or brought along, since the log does
 not name them.
 
+Resolving the tags is the expensive half for a plugin with a long history, since it reads
+the whole tag log to find two revisions. A caller diffing consecutive releases can cap that
+read with $limit, at the price of a TagNotFoundException for a version tagged before the
+window.
+
 **Parameters:**
 
-| Parameter | Type       | Description                      |
-|-----------|------------|----------------------------------|
-| `$old`    | **string** | The older version, e.g. '4.4.3'. |
-| `$new`    | **string** | The newer version, e.g. '4.4.4'. |
+| Parameter | Type       | Description                                                                  |
+|-----------|------------|------------------------------------------------------------------------------|
+| `$old`    | **string** | The older version, e.g. '4.4.3'.                                             |
+| `$new`    | **string** | The newer version, e.g. '4.4.4'.                                             |
+| `$limit`  | **int**    | Maximum number of tag revisions to read, newest first. 0 for no limit.       |
 
 **Return Value:**
 
@@ -106,7 +120,7 @@ Changed paths, keyed by their path relative to the plugin root.
 
 **Throws:**
 
-When either version has no tag.
+When either version has no tag in the revisions read.
 - [`TagNotFoundException`](./Exception/TagNotFoundException)
 When the old version was not tagged before the new one.
 - [`InvalidArgumentException`](../../../InvalidArgumentException)

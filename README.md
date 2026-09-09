@@ -146,6 +146,15 @@ $before = (new PluginClient(new PluginClientConfig('gdpr-cookie-consent', '4.4.3
 A version that was published without ever being tagged throws `TagNotFoundException` rather than silently comparing
 the wrong pair, and an old version that was tagged after the new one throws `InvalidArgumentException`.
 
+Resolving the two tags is the expensive half: it reads the tag history, which for a plugin with hundreds of releases
+costs far more than the diff itself. A caller comparing recent releases can cap that read, at the price of a
+`TagNotFoundException` for a version tagged before the window.
+
+```php
+// Read the newest twenty tag revisions instead of a decade of them.
+$paths = $client->diffVersions('4.4.3', '4.4.4', 20);
+```
+
 #### Map versions to revisions
 
 ```php
@@ -158,6 +167,9 @@ foreach ($tags as $version => $entry) {
     echo "{$version} => r{$entry->revision} from {$entry->paths[0]->copyFromRevision}\n";
 }
 ```
+
+`getTagRevisions($limit)` reads only the newest `$limit` revisions of the `tags` directory. A release usually takes one
+revision, but retagging a release and editing a file inside a tag take their own, so the window can hold fewer versions.
 
 #### Read a revision range
 
@@ -268,8 +280,8 @@ Every method reads the slug and version held by the client's config. `getTagsDir
 | `getLog(int $limit = 100, ?int $start = null, int $end = 0)`                       | `LogEntry[]`       | Commit log of this plugin or theme, newest revision first.               |
 | `getRepositoryLog(int $limit = 100, ?int $start = null, int $end = 0)`             | `LogEntry[]`       | Commit log of every plugin or theme at once.                             |
 | `getChangedPaths(int $start, int $end, string $path = '', int $limit = 0)`        | `LogEntry[]`       | Revisions in an inclusive range, optionally scoped to a subtree.         |
-| `getTagRevisions()`                                                               | `LogEntry[]`       | Every published version to the revision that created its tag.           |
-| `diffVersions(string $old, string $new)`                                          | `LogPath[]`        | Files changed between two published versions, keyed by path.            |
+| `getTagRevisions(int $limit = 0)`                                                 | `LogEntry[]`       | Every published version to the revision that created its tag.           |
+| `diffVersions(string $old, string $new, int $limit = 0)`                          | `LogPath[]`        | Files changed between two published versions, keyed by path.            |
 | `getFilesystem()`                                                                 | `Filesystem`       | The underlying Flysystem instance, for anything the client does not do.  |
 
 ### `PluginApiClient`
