@@ -32,15 +32,17 @@ class LogReport
     /**
      * Build the request body of a log-report.
      *
-     * The end revision is always sent. Without it the server answers 200 with an empty report,
-     * which reads as a plugin with no history rather than as the malformed request it is.
+     * The end revision is always sent. Without it, or with a negative one, the server answers 200
+     * with an empty report, which reads as a plugin with no history rather than as the malformed
+     * request it is. An inverted range is rejected too: the server would answer it oldest first,
+     * which breaks the newest first order every caller relies on.
      *
      * @param int $limit Maximum number of revisions to return, newest first. 0 for no limit.
      * @param int|null $startRevision Revision to start from, defaults to the youngest revision.
      * @param int $endRevision Revision to stop at.
      * @param string $path Path relative to the report target, to restrict the revisions to.
      * @return string
-     * @throws InvalidArgumentException On a revision range the server cannot answer.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
     public function createRequestBody(
         int $limit,
@@ -73,7 +75,7 @@ class LogReport
         $lines[] = '<S:revprop>svn:author</S:revprop>';
         $lines[] = '<S:revprop>svn:date</S:revprop>';
         $lines[] = '<S:revprop>svn:log</S:revprop>';
-        $lines[] = '<S:path>' . htmlspecialchars($path, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</S:path>';
+        $lines[] = '<S:path>' . htmlspecialchars($path, ENT_XML1 | ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</S:path>';
         $lines[] = '</S:log-report>';
 
         return implode("\n", $lines);
@@ -142,10 +144,10 @@ class LogReport
                 $path->textContent,
                 self::PATH_ELEMENTS[$path->localName],
                 $path->getAttribute('node-kind') ?: null,
-                $path->getAttribute('text-mods') === 'true',
-                $path->getAttribute('prop-mods') === 'true',
                 $path->getAttribute('copyfrom-path') ?: null,
                 $copyFromRevision === '' ? null : (int) $copyFromRevision,
+                $path->getAttribute('text-mods') === 'true',
+                $path->getAttribute('prop-mods') === 'true',
             );
         }
 

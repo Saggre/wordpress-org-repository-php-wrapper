@@ -92,6 +92,16 @@ protected getPath(string $path): string
 
 ***
 
+### getRootPath
+
+Get the repository absolute path of the plugin or theme root, e.g. '/hello-dolly'.
+
+```php
+protected getRootPath(): string
+```
+
+***
+
 ### getFile
 
 Get the content of a plugin or theme file.
@@ -220,6 +230,8 @@ public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 
@@ -245,6 +257,8 @@ A single revision spans every plugin or theme changed by that commit.
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 
@@ -273,7 +287,7 @@ scope, so a revision that changed both trunk and a tag lists both.
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
-When the start revision is older than the end revision.
+On a negative end revision or an inverted range.
 - [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
@@ -303,6 +317,8 @@ narrower scopes go into the request body rather than into the target.
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 

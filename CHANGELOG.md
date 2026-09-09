@@ -31,7 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `$path` argument of `BaseClient::getDirectory()` defaults to the plugin or theme root.
 - Repository requests now negotiate gzip, which is worth more than an order of magnitude on commit logs.
 - `Util\LogReport::createRequestBody()` takes a path to scope the revisions to, and rejects a negative or inverted
-  revision range before the request is sent.
+  revision range before the request is sent. `getLog()` and `getRepositoryLog()` therefore throw
+  `InvalidArgumentException` on such a range instead of sending it.
+- The protected `BaseClient::getLogForPath()` takes the report target first and a path to scope the revisions to last.
 - The minimum PHP version is now 8.1.
 - `composer run create-docs` now passes the markdown template and the title the committed `docs/` are generated with.
 

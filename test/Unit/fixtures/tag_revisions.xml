@@ -34,9 +34,17 @@
 <S:log-item>
 <S:added-path node-kind="dir" text-mods="false" prop-mods="false" copyfrom-path="/demo-plugin/trunk" copyfrom-rev="99">/demo-plugin/tags/1.1.9</S:added-path>
 <S:modified-path node-kind="file" text-mods="true" prop-mods="false">/demo-plugin/tags/1.1.9/readme.txt</S:modified-path>
+<S:deleted-path node-kind="dir" text-mods="false" prop-mods="false">/demo-plugin/tags/1.0.0</S:deleted-path>
 <D:version-name>100</D:version-name>
 <S:date>2025-04-01T10:00:00.000000Z</S:date>
-<D:comment>Adding version 1.1.9</D:comment>
+<D:comment>Adding version 1.1.9, dropping the withdrawn 1.0.0</D:comment>
+<D:creator-displayname>vendor</D:creator-displayname>
+</S:log-item>
+<S:log-item>
+<S:added-path node-kind="dir" text-mods="false" prop-mods="false" copyfrom-path="/demo-plugin/trunk" copyfrom-rev="89">/demo-plugin/tags/1.0.0</S:added-path>
+<D:version-name>90</D:version-name>
+<S:date>2025-03-01T10:00:00.000000Z</S:date>
+<D:comment>Adding version 1.0.0</D:comment>
 <D:creator-displayname>vendor</D:creator-displayname>
 </S:log-item>
 </S:log-report>

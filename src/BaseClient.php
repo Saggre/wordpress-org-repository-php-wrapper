@@ -91,6 +91,16 @@ abstract class BaseClient
     }
 
     /**
+     * Get the repository absolute path of the plugin or theme root, e.g. '/hello-dolly'.
+     *
+     * @return string
+     */
+    protected function getRootPath(): string
+    {
+        return (new Path('/'))->join('/', $this->config->getSlug());
+    }
+
+    /**
      * Get the content of a plugin or theme file.
      *
      * @param string $path Relative file path from the plugin or theme root.
@@ -185,15 +195,11 @@ abstract class BaseClient
      * @param int $endRevision Revision to stop at.
      * @return LogEntry[]
      * @throws ClientException On repository read error.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
     public function getLog(int $limit = 100, ?int $startRevision = null, int $endRevision = 0): array
     {
-        return $this->getLogForPath(
-            (new Path('/'))->join('/', $this->config->getSlug()),
-            $limit,
-            $startRevision,
-            $endRevision
-        );
+        return $this->getLogForPath($this->getRootPath(), $limit, $startRevision, $endRevision);
     }
 
     /**
@@ -206,6 +212,7 @@ abstract class BaseClient
      * @param int $endRevision Revision to stop at.
      * @return LogEntry[]
      * @throws ClientException On repository read error.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
     public function getRepositoryLog(int $limit = 100, ?int $startRevision = null, int $endRevision = 0): array
     {
@@ -225,17 +232,11 @@ abstract class BaseClient
      * @param int $limit Maximum number of revisions to return. 0 for no limit.
      * @return LogEntry[]
      * @throws ClientException On repository read error.
-     * @throws InvalidArgumentException When the start revision is older than the end revision.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
     public function getChangedPaths(int $startRevision, int $endRevision, string $path = '', int $limit = 0): array
     {
-        return $this->getLogForPath(
-            (new Path('/'))->join('/', $this->config->getSlug()),
-            $limit,
-            $startRevision,
-            $endRevision,
-            $path
-        );
+        return $this->getLogForPath($this->getRootPath(), $limit, $startRevision, $endRevision, $path);
     }
 
     /**
@@ -251,6 +252,7 @@ abstract class BaseClient
      * @param string $path Path relative to the target, to restrict the revisions to.
      * @return LogEntry[]
      * @throws ClientException On repository read error.
+     * @throws InvalidArgumentException On a negative end revision or an inverted range.
      */
     protected function getLogForPath(
         string $target,

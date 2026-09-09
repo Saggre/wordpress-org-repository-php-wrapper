@@ -2,6 +2,7 @@
 
 namespace Saggre\WordPress\Repository;
 
+use InvalidArgumentException;
 use League\Flysystem\DirectoryListing;
 use League\Flysystem\FilesystemException;
 use Saggre\WordPress\Repository\Config\PluginClientConfig;
@@ -54,40 +55,40 @@ class PluginClient extends BaseClient
      */
     public function getTagRevisions(): array
     {
-        $prefix = (new Path('/'))->join('/', $this->config->getSlug(), 'tags') . '/';
+        $tagsPath = $this->getRootPath() . '/tags';
         $revisions = [];
+        $deleted = [];
 
-        $log = $this->getLogForPath(
-            (new Path('/'))->join('/', $this->config->getSlug()),
-            0,
-            null,
-            0,
-            'tags'
-        );
+        $log = $this->getLogForPath($this->getRootPath(), 0, null, 0, 'tags');
 
         foreach ($log as $entry) {
             foreach ($entry->paths as $path) {
-                if ($path->action !== LogPathAction::Added || $path->nodeKind !== 'dir') {
+                if (
+                    $path->nodeKind !== 'dir'
+                    || $path->action === LogPathAction::Modified
+                    || dirname($path->path) !== $tagsPath
+                ) {
                     continue;
                 }
 
-                if (!str_starts_with($path->path, $prefix)) {
+                $version = basename($path->path);
+
+                // The log runs newest first, so the newest event wins: a tag whose newest event is
+                // a deletion no longer exists, and a recreated tag resolves to the copy the
+                // repository actually holds.
+                if (isset($revisions[$version]) || isset($deleted[$version])) {
                     continue;
                 }
 
-                $version = substr($path->path, strlen($prefix));
-
-                // The log runs newest first, so the first add wins and a tag that was deleted and
-                // recreated resolves to the copy the repository actually holds.
-                if ($version !== '' && !str_contains($version, '/') && !isset($revisions[$version])) {
+                if ($path->action === LogPathAction::Deleted) {
+                    $deleted[$version] = true;
+                } else {
                     $revisions[$version] = $entry;
                 }
             }
         }
 
-        uasort($revisions, fn(LogEntry $a, LogEntry $b) => $a->revision <=> $b->revision);
-
-        return $revisions;
+        return array_reverse($revisions, true);
     }
 
     /**
@@ -98,12 +99,15 @@ class PluginClient extends BaseClient
      *
      * Vendors commonly commit the same edit to trunk and to the new tag, so both trees are read
      * and deduplicated. The tag directory itself is a copy rather than a file change and is left
-     * out, as is anything committed to an unrelated tag in the same range.
+     * out, as is anything committed to an unrelated tag in the same range. A deleted or copied
+     * directory is listed in place of the files it removed or brought along, since the log does
+     * not name them.
      *
      * @param string $old The older version, e.g. '4.4.3'.
      * @param string $new The newer version, e.g. '4.4.4'.
-     * @return array<string, LogPath> Changed files, keyed by their path relative to the plugin root.
+     * @return array<string, LogPath> Changed paths, keyed by their path relative to the plugin root.
      * @throws TagNotFoundException When either version has no tag.
+     * @throws InvalidArgumentException When the old version was not tagged before the new one.
      * @throws ClientException On repository read error.
      */
     public function diffVersions(string $old, string $new): array
@@ -118,6 +122,14 @@ class PluginClient extends BaseClient
                     $this->config->getSlug()
                 ));
             }
+        }
+
+        if ($tags[$old]->revision >= $tags[$new]->revision) {
+            throw new InvalidArgumentException(sprintf(
+                'Version "%s" was not tagged before version "%s".',
+                $old,
+                $new
+            ));
         }
 
         // The revision that creates a tag also fills it from trunk, so it belongs to the older
@@ -136,17 +148,21 @@ class PluginClient extends BaseClient
      */
     protected function normalizePaths(array $log, string $version): array
     {
-        $root = new Path('/');
-        $slug = $this->config->getSlug();
         $prefixes = [
-            $root->join('/', $slug, 'trunk') . '/',
-            $root->join('/', $slug, 'tags', $version) . '/',
+            $this->getRootPath() . '/trunk/',
+            $this->getRootPath() . '/tags/' . $version . '/',
         ];
         $paths = [];
 
         foreach ($log as $entry) {
             foreach ($entry->paths as $path) {
-                if ($path->nodeKind === 'dir') {
+                // A plain directory add lists its files separately, but a deleted or copied
+                // directory is the only trace of the files it removed or brought along.
+                if (
+                    $path->nodeKind === 'dir'
+                    && $path->action !== LogPathAction::Deleted
+                    && $path->copyFromPath === null
+                ) {
                     continue;
                 }
 
@@ -156,8 +172,12 @@ class PluginClient extends BaseClient
                     continue;
                 }
 
-                // A property only change in one tree must not hide a content change in the other.
-                if (isset($paths[$relative]) && !$path->textMods) {
+                // A property only change in one tree must not hide a content change in the other,
+                // but nothing older than a deletion can bring a path back.
+                if (
+                    isset($paths[$relative])
+                    && (!$path->textMods || $paths[$relative]->action === LogPathAction::Deleted)
+                ) {
                     continue;
                 }
 
@@ -165,10 +185,10 @@ class PluginClient extends BaseClient
                     $relative,
                     $path->action,
                     $path->nodeKind,
-                    $path->textMods,
-                    $path->propMods,
                     $path->copyFromPath,
                     $path->copyFromRevision,
+                    $path->textMods,
+                    $path->propMods,
                 );
             }
         }

@@ -3,7 +3,6 @@
 namespace Saggre\WordPress\Repository\Test\Unit\Stub;
 
 use Sabre\DAV\Client;
-use Sabre\HTTP\Request;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\Response;
 use Sabre\HTTP\ResponseInterface;
@@ -43,19 +42,5 @@ class DavClientStub extends Client
         $this->requests[] = $request;
 
         return array_shift($this->responses);
-    }
-
-    /**
-     * Get the body of a recorded request.
-     *
-     * @param int $index
-     * @return string
-     */
-    public function getRequestBody(int $index): string
-    {
-        /** @var Request $request */
-        $request = $this->requests[$index];
-
-        return $request->getBodyAsString();
     }
 }

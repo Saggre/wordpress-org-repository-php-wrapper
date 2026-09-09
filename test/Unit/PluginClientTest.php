@@ -55,7 +55,7 @@ class PluginClientTest extends UnitTestCase
         $dav = (new DavClientStub())->willRespondWith($this->getFixture('version_diff.xml'));
 
         $log = $this->createPluginClient($dav)->getChangedPaths(120, 115, 'trunk/includes', 10);
-        $body = $dav->getRequestBody(0);
+        $body = $dav->requests[0]->getBodyAsString();
 
         self::assertCount(1, $dav->requests);
         self::assertSame('REPORT', $dav->requests[0]->getMethod());
@@ -64,7 +64,7 @@ class PluginClientTest extends UnitTestCase
         self::assertStringContainsString('<S:end-revision>115</S:end-revision>', $body);
         self::assertStringContainsString('<S:limit>10</S:limit>', $body);
         self::assertStringContainsString('<S:path>trunk/includes</S:path>', $body);
-        self::assertSame([120, 115], array_column($log, 'revision'));
+        self::assertSame([120, 115, 112], array_column($log, 'revision'));
     }
 
     public function testGetChangedPathsRejectsAnInvertedRangeBeforeSending()
@@ -101,7 +101,7 @@ class PluginClientTest extends UnitTestCase
         self::assertContainsOnlyInstancesOf(LogEntry::class, $tags);
         self::assertSame(['1.2.0', '1.9.0', '1.10.4', '1.1.9'], array_keys($tags));
         self::assertSame(120, $tags['1.10.4']->revision);
-        self::assertStringContainsString('<S:path>tags</S:path>', $dav->getRequestBody(0));
+        self::assertStringContainsString('<S:path>tags</S:path>', $dav->requests[0]->getBodyAsString());
     }
 
     public function testGetTagRevisionsOrdersAVersionSeriesByRevision()
@@ -135,8 +135,23 @@ class PluginClientTest extends UnitTestCase
         $client->diffVersions('1.9.0', '1.10.4');
 
         self::assertCount(2, $dav->requests, 'The diff took more than one report beyond the tags.');
-        self::assertStringContainsString('<S:start-revision>120</S:start-revision>', $dav->getRequestBody(1));
-        self::assertStringContainsString('<S:end-revision>111</S:end-revision>', $dav->getRequestBody(1));
+        $body = $dav->requests[1]->getBodyAsString();
+        self::assertStringContainsString('<S:start-revision>120</S:start-revision>', $body);
+        self::assertStringContainsString('<S:end-revision>111</S:end-revision>', $body);
+    }
+
+    public function testDiffVersionsRejectsVersionsTaggedOutOfOrder()
+    {
+        [$client, $dav] = $this->createDiffClient();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Version "1.10.4" was not tagged before version "1.9.0".');
+
+        try {
+            $client->diffVersions('1.10.4', '1.9.0');
+        } finally {
+            self::assertCount(1, $dav->requests, 'The range request reached the network.');
+        }
     }
 
     public function testDiffVersionsDeduplicatesTrunkAndTagPaths()
@@ -148,6 +163,7 @@ class PluginClientTest extends UnitTestCase
         self::assertContainsOnlyInstancesOf(LogPath::class, $paths);
         self::assertSame([
             'admin/settings.php',
+            'includes/legacy',
             'includes/new-feature.php',
             'includes/old.php',
             'readme.txt',
@@ -155,6 +171,17 @@ class PluginClientTest extends UnitTestCase
         ], array_keys($paths));
         self::assertSame('readme.txt', $paths['readme.txt']->path);
         self::assertSame(LogPathAction::Deleted, $paths['includes/old.php']->action);
+    }
+
+    public function testDiffVersionsKeepsADeletionOverAnOlderEdit()
+    {
+        [$client] = $this->createDiffClient();
+
+        $paths = $client->diffVersions('1.9.0', '1.10.4');
+
+        self::assertSame(LogPathAction::Deleted, $paths['includes/old.php']->action, 'The r112 edit revived the file.');
+        self::assertSame(LogPathAction::Deleted, $paths['includes/legacy']->action);
+        self::assertSame('dir', $paths['includes/legacy']->nodeKind);
     }
 
     public function testDiffVersionsKeepsTheContentChangeOfADuplicatedPath()

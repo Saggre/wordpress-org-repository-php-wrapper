@@ -18,9 +18,17 @@
 <S:added-path node-kind="dir" text-mods="false" prop-mods="false">/demo-plugin/trunk/includes</S:added-path>
 <S:added-path node-kind="file" text-mods="true" prop-mods="false">/demo-plugin/trunk/includes/new-feature.php</S:added-path>
 <S:deleted-path node-kind="file" text-mods="false" prop-mods="false">/demo-plugin/trunk/includes/old.php</S:deleted-path>
+<S:deleted-path node-kind="dir" text-mods="false" prop-mods="false">/demo-plugin/trunk/includes/legacy</S:deleted-path>
 <D:version-name>115</D:version-name>
 <S:date>2025-06-15T10:00:00.000000Z</S:date>
 <D:comment>Split the includes directory</D:comment>
+<D:creator-displayname>vendor</D:creator-displayname>
+</S:log-item>
+<S:log-item>
+<S:modified-path node-kind="file" text-mods="true" prop-mods="false">/demo-plugin/trunk/includes/old.php</S:modified-path>
+<D:version-name>112</D:version-name>
+<S:date>2025-06-10T10:00:00.000000Z</S:date>
+<D:comment>Last edit before the split</D:comment>
 <D:creator-displayname>vendor</D:creator-displayname>
 </S:log-item>
 </S:log-report>

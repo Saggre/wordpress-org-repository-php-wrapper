@@ -89,7 +89,9 @@ is the cheap alternative to downloading and comparing two complete trees.
 
 Vendors commonly commit the same edit to trunk and to the new tag, so both trees are read
 and deduplicated. The tag directory itself is a copy rather than a file change and is left
-out, as is anything committed to an unrelated tag in the same range.
+out, as is anything committed to an unrelated tag in the same range. A deleted or copied
+directory is listed in place of the files it removed or brought along, since the log does
+not name them.
 
 **Parameters:**
 
@@ -100,12 +102,14 @@ out, as is anything committed to an unrelated tag in the same range.
 
 **Return Value:**
 
-Changed files, keyed by their path relative to the plugin root.
+Changed paths, keyed by their path relative to the plugin root.
 
 **Throws:**
 
 When either version has no tag.
 - [`TagNotFoundException`](./Exception/TagNotFoundException)
+When the old version was not tagged before the new one.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
 
@@ -208,6 +212,16 @@ protected getPath(string $path): string
 | Parameter | Type       | Description                                       |
 |-----------|------------|---------------------------------------------------|
 | `$path`   | **string** | Relative file path from the plugin or theme root. |
+
+***
+
+### getRootPath
+
+Get the repository absolute path of the plugin or theme root, e.g. '/hello-dolly'.
+
+```php
+protected getRootPath(): string
+```
 
 ***
 
@@ -339,6 +353,8 @@ public getLog(int $limit = 100, int|null $startRevision = null, int $endRevision
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 
@@ -364,6 +380,8 @@ A single revision spans every plugin or theme changed by that commit.
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 
@@ -392,7 +410,7 @@ scope, so a revision that changed both trunk and a tag lists both.
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
-When the start revision is older than the end revision.
+On a negative end revision or an inverted range.
 - [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
@@ -422,6 +440,8 @@ narrower scopes go into the request body rather than into the target.
 
 On repository read error.
 - [`ClientException`](./Exception/ClientException)
+On a negative end revision or an inverted range.
+- [`InvalidArgumentException`](../../../InvalidArgumentException)
 
 ***
 

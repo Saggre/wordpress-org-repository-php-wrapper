@@ -140,8 +140,7 @@ class LogReportTest extends UnitTestCase
 
     public function testParseResponseDefaultsMissingModificationFlagsToFalse()
     {
-        $body = '<?xml version="1.0" encoding="utf-8"?>' . "
-"
+        $body = '<?xml version="1.0" encoding="utf-8"?>' . "\n"
             . '<S:log-report xmlns:S="svn:" xmlns:D="DAV:"><S:log-item>'
             . '<S:deleted-path node-kind="file">/hello-dolly/trunk/gone.txt</S:deleted-path>'
             . '<D:version-name>1</D:version-name></S:log-item></S:log-report>';

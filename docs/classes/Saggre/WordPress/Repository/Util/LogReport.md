@@ -23,8 +23,10 @@ Build the request body of a log-report.
 public createRequestBody(int $limit, int|null $startRevision = null, int $endRevision = 0, string $path = ''): string
 ```
 
-The end revision is always sent. Without it the server answers 200 with an empty report,
-which reads as a plugin with no history rather than as the malformed request it is.
+The end revision is always sent. Without it, or with a negative one, the server answers 200
+with an empty report, which reads as a plugin with no history rather than as the malformed
+request it is. An inverted range is rejected too: the server would answer it oldest first,
+which breaks the newest first order every caller relies on.
 
 **Parameters:**
 
@@ -37,7 +39,7 @@ which reads as a plugin with no history rather than as the malformed request it 
 
 **Throws:**
 
-On a revision range the server cannot answer.
+On a negative end revision or an inverted range.
 - [`InvalidArgumentException`](../../../../InvalidArgumentException)
 
 ***

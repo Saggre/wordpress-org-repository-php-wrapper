@@ -128,7 +128,8 @@ foreach ($log as $entry) {
 
 `diffVersions()` lists the files a release touched without downloading either tree. It resolves both tags, then reads
 the revision range between them in a single request. Paths come back relative to the plugin root, deduplicated across
-trunk and the new tag, which vendors commonly commit the same edit to.
+trunk and the new tag, which vendors commonly commit the same edit to. A deleted or copied directory is listed in place
+of the files it removed or brought along, since the log does not name them.
 
 ```php
 $paths = $client->diffVersions('4.4.3', '4.4.4');
@@ -143,7 +144,7 @@ $before = (new PluginClient(new PluginClientConfig('gdpr-cookie-consent', '4.4.3
 ```
 
 A version that was published without ever being tagged throws `TagNotFoundException` rather than silently comparing
-the wrong pair.
+the wrong pair, and an old version that was tagged after the new one throws `InvalidArgumentException`.
 
 #### Map versions to revisions
 
@@ -161,7 +162,8 @@ foreach ($tags as $version => $entry) {
 #### Read a revision range
 
 `getChangedPaths()` reads the revisions between two bounds, optionally scoped to a subtree. Both bounds are inclusive,
-and both are required: the server answers an empty report with HTTP 200 when the end revision is missing.
+and both are required: the server answers an empty report with HTTP 200 when the end revision is missing. An inverted
+range throws `InvalidArgumentException`, as it does on `getLog()` and `getRepositoryLog()`.
 
 ```php
 $log = $client->getChangedPaths(3686273, 3679496, 'trunk/admin');
